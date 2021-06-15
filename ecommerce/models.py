@@ -26,6 +26,11 @@ class User(models.Model):
     image = models.ImageField(default='/images/profile_pics/default.jpg', upload_to='images/profile_pics')
     birthday = models.DateField(null=True,blank=True)
     address = models.CharField(max_length=200)
+    ROLE = (
+        ('U','user'),
+        ('M','manager')
+    )
+    role = models.CharField(choices=ROLE, max_length=2, blank=True, default=ROLE[0][0], help_text='User role')
     
     def __str__(self):
         return self.username
@@ -35,6 +40,12 @@ class Order(models.Model):
     product = models.ForeignKey('Product', on_delete=models.CASCADE, null=True)
     total_price = models.FloatField(blank=True, null= True, default=0)
     date = models.DateField(null=True, blank=True)
+    BOOKING_STATUS = (
+        ('W','waiting'),
+        ('A','approved'),
+        ('R','rejected')
+    )
+    status = models.CharField(choices=BOOKING_STATUS, max_length=2, blank=True, default=BOOKING_STATUS[0][0], help_text='Booking state')
 
     def __str__(self):
         return self.user.username
@@ -50,9 +61,3 @@ class FavoriteProduct(models.Model):
 class Booking(models.Model):
     product = models.ForeignKey('Product', on_delete=models.CASCADE, null=True)
     order = models.ForeignKey('Order', on_delete=models.CASCADE, null=True)
-    BOOKING_STATUS = (
-        ('W','waiting'),
-        ('A','approved'),
-        ('R','rejected')
-    )
-    status = models.CharField(choices=BOOKING_STATUS, max_length=2, blank=True, default=BOOKING_STATUS[0][0], help_text='Booking state')
