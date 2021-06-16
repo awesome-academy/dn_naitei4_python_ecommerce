@@ -1,0 +1,44 @@
+{% extends "base_generic.html" %}
+{% load i18n %}
+{% block content %}
+  <main role="main" class="container">
+    <div class="my-3 py-3 text-center">
+        <h2 class="display-4">{% trans 'Products' %}</h2>
+    </div>
+    <section class="row">
+        {% for product in product_list %}
+        <div class="col-md-3">
+            <div class="card text-center border-0 mb-4">
+                <div>
+                    <a href="{% url 'product-detail' pk=product.pk %}">
+                        <img src="{{ product.image.url }}" class="card-img-top width-100" width="200" height="300" alt="{{ product.product_name }}">
+                    </a>
+                </div>
+                <div class="card-body">
+                    <p class="card-text mb-1">{{ product.product_name }}</p>
+                    <p class="card-text font-weight-bold">{{ product.price|floatformat:2 }} $</p>
+                    <a href="{% url 'product-detail' pk=product.pk %}" class="btn btn-primary">{% trans 'View details' %}</a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </section>
+    <nav aria-label="Product navigation">
+        <ul class="pagination justify-content-center">
+            {% if page_obj.has_previous  %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}">{% trans 'Previous' %}</a>
+                </li>
+            {% endif %}
+            {% for page_num in page_obj.paginator.page_range %}
+                <li class="page-item"><a class="page-link" href="?page={{ page_num }}">{{ page_num }}</a></li>
+            {% endfor %}
+            {% if page_obj.has_next   %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.next_page_number }}">{% trans 'Next' %}</a>
+                </li>
+            {% endif %}
+        </ul>
+    </nav>
+</main>
+{% endblock %}
