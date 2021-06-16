@@ -10,7 +10,7 @@ class Category(models.Model):
 
 class Product(models.Model):
     product_name = models.CharField(max_length=200)
-    image = models.ImageField(default='/images/product_pics/default.png', upload_to='images/product_pics')
+    image = models.ImageField(default='/product_pics/default.png', upload_to='product_pics')
     category = models.ForeignKey('Category', on_delete=models.SET_NULL, null=True)
     description = models. TextField(max_length=1000, help_text=_('Enter a brief description of the product'))
     publish_date = models.DateField(null=True, blank=True)
@@ -23,7 +23,7 @@ class Product(models.Model):
 class User(models.Model):
     username = models.CharField(max_length=200)
     email = models.EmailField(max_length=200)
-    image = models.ImageField(default='/images/profile_pics/default.jpg', upload_to='images/profile_pics')
+    image = models.ImageField(default='/profile_pics/default.jpg', upload_to='profile_pics')
     birthday = models.DateField(null=True,blank=True)
     address = models.CharField(max_length=200)
     ROLE = (
