@@ -1,0 +1,41 @@
+<nav class="navbar sticky-top navbar-expand-md navbar-light bg-light">
+    <div class="container">
+        {% load i18n %}
+        <a class="navbar-brand h1 text-primary" >{% trans 'Django ecommerce website' %}</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarToggler" aria-controls="navbarTogglerDemo01" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarToggler">
+            <ul class="navbar-nav mr-auto">
+                <li class="nav-item">
+                    <a class="nav-link">{% trans 'Home' %}</a>
+                </li>
+            </ul>
+            <ul class="navbar-nav">
+                {% if user.is_authenticated %}
+                    <li class="nav-item">
+                        <a class="nav-link">{% trans 'Profile' %}</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link">{% trans 'Orders' %}</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link">{% trans 'Logout' %}</a>
+                    </li>
+                {% else %}
+                    <li class="nav-item">
+                        <a class="nav-link">{% trans 'Login' %}</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link"></a>{% trans 'Sign Up' %}</a>
+                    </li>
+                {% endif %}
+                <li class="nav-item">
+                    <a class="nav-link">Cart<i class="fas fa-shopping-cart ml-2"></i>
+                        <span id="cart-total-items" class="badge badge-info"></span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
