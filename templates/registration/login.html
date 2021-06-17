@@ -1,0 +1,42 @@
+{% extends "base_generic.html" %}
+{% load static %}
+{% block content %}
+
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
+        integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+</head>
+
+<body>
+    <div class="container">
+        <div class="login">
+            <div class="row">
+                <h2>Login</h2>
+                <div class="col-md-12">
+                    <label for="username">Username</label>
+                    <input type="text" class="form-control" id="username" placeholder="Ex. Duyen_nguyen">
+                    <br>
+                    <label for="password">Password</label>
+                    <input type="password" class="form-control" id="password" placeholder="Ex. abc@123">
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-12">
+                    <input type="Login" id="login" value="Login" class="btn btn-primary btn-form">
+                </div>
+            </div>
+            <div class="wrapper">
+                <a href="{% url 'password_reset' %}">Lost password?</a>
+            </div>            
+            <hr></hr>
+            <input type="Register" id="register" value="Create new account" class="btn btn-success btn-form">
+        </div>
+    </div>
+</body>
+{% endblock %}
