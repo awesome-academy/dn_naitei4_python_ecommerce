@@ -1,0 +1,43 @@
+{% extends "base_generic.html" %}
+{% load static %}
+{% load i18n %}
+
+{% block content %}
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
+        integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+</head>
+<body>
+    <div class="bg-img">
+        <form method="post">
+        {% csrf_token %}
+            <div class="container">
+                <div class="signup">
+                    <div class="row">
+                        <div class="signup-title">
+                            <h2>Signup</h2>
+                        </div>
+                        <div class="col-md-12">
+                            <div class="login-wrapper">
+                                {{ form.as_p }}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="wrapper">
+                            <input type="submit" id="register" value="Sign up" class="btn btn-primary btn-signup-form">
+                    </div>
+                    <div class="wrapper">
+                        <a>{% trans 'Already have an account? Then please ' %}<a href="{% url 'login' %}">{% trans 'sign in' %}</a>.</a>
+                    </div>   
+                </div>
+            </div>
+        </form>
+    </div>
+</body>
+{% endblock %}

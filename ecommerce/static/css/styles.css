@@ -1,13 +1,13 @@
 body {
-    background-color: #eee!important;
+    background-image: url('../images/background.jpg');
 }
 
 .login {
     background-color: #fff;
-    width: 40%;
+    width: 28%;
     margin: 80px auto;
     border-radius: 10px;
-    padding: 20px;
+    padding: 54px;
     border-left: 5px solid #009688;
     box-shadow: 0px 0px 0px 0px #3f51b5;
 }
@@ -16,11 +16,35 @@ body {
     margin: auto;
 }
 
-.btn-form {
+.btn-signin-form {
     width: 100%;
-    margin-top: 20px;
+    margin-top: 10px;
 }
+
+.btn-signup-form{
+    width: 100%;
+}
+
 .wrapper{
     margin-top: 8px;
     text-align: center;
+}
+
+.login-wrapper{
+    margin-top: 18px;
+}
+
+.signup {
+    background-color: #fff;
+    width: 85%;
+    margin: 80px auto;
+    border-radius: 10px;
+    padding: 50px;
+    border-left: 5px solid #009688;
+    box-shadow: 0px 0px 0px 0px #3f51b5;
+}
+
+.signup-title{
+    margin-left: 45%;
+    margin-bottom: 10px;
 }
