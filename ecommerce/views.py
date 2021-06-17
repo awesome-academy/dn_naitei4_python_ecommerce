@@ -9,4 +9,3 @@ class ProductListView(generic.ListView):
 
 class ProductDetailView(generic.DetailView):
     model = Product
-    template_name = 'product_details.html'

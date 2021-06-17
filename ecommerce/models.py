@@ -20,6 +20,9 @@ class Product(models.Model):
     def __str__(self):
         return self.product_name
 
+    def get_absolute_url(self):
+        return reverse('product-detail', args=[str(self.id)])
+
 class User(models.Model):
     username = models.CharField(max_length=200)
     email = models.EmailField(max_length=200)

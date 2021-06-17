@@ -10,14 +10,14 @@
         <div class="col-md-3">
             <div class="card text-center border-0 mb-4">
                 <div>
-                    <a href="{% url 'product-detail' pk=product.pk %}">
-                        <img src="{{ product.image.url }}" class="card-img-top width-100" width="200" height="300" alt="{{ product.product_name }}">
+                    <a href="{{ product.get_absolute_url }}">
+                        <img src="{{ product.image.url }}" class="card-img-top" width="200" height="300" alt="{{ product.product_name }}">
                     </a>
                 </div>
                 <div class="card-body">
                     <p class="card-text mb-1">{{ product.product_name }}</p>
                     <p class="card-text font-weight-bold">{{ product.price|floatformat:2 }} $</p>
-                    <a href="{% url 'product-detail' pk=product.pk %}" class="btn btn-primary">{% trans 'View details' %}</a>
+                    <a href="{{ product.get_absolute_url }}" class="btn btn-primary">{% trans 'View details' %}</a>
                 </div>
             </div>
         </div>
