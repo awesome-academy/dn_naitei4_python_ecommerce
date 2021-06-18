@@ -1,7 +1,7 @@
 {% extends "base_generic.html" %}
 {% load static %}
 {% block content %}
-
+{% load i18n %}
 <head>
     <!-- Required meta tags -->
     <meta charset="utf-8">
@@ -13,30 +13,46 @@
     <link rel="stylesheet" href="{% static 'css/styles.css' %}">
 </head>
 
+{% if form.errors %}
+    <p>{% trans 'Your username and password did not match. Please try again.' %}</p>
+{% endif %}
+
+{% if next %}
+    {% if user.is_authenticated %}
+        <p>{% trans 'Your account does not have access to this page. To proceed, please login with an account that has access.' %}</p>
+    {% else %}
+        <p>{% trans 'Please login to see this page.' %}</p>
+    {% endif %}
+{% endif %}
+
 <body>
-    <div class="container">
-        <div class="login">
-            <div class="row">
-                <h2>Login</h2>
-                <div class="col-md-12">
-                    <label for="username">Username</label>
-                    <input type="text" class="form-control" id="username" placeholder="Ex. Duyen_nguyen">
-                    <br>
-                    <label for="password">Password</label>
-                    <input type="password" class="form-control" id="password" placeholder="Ex. abc@123">
+    <div class="bg-img">
+        <form method="post" action="{% url 'login' %}">
+        {% csrf_token %}
+            <div class="container">
+                <div class="login">
+                    <div class="row">
+                        <h2>Login</h2>
+                        <div class="col-md-12">
+                            <div class="login-wrapper">
+                                {{ form.as_p }}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-12">
+                            <input type="submit" value="login" class="btn btn-primary btn-signin-form"/>
+                            <input type="hidden" name="next" value="{{ next }}" />
+                        </div>
+                    </div>
+                    <div class="wrapper">
+                        <a href="{% url 'password_reset' %}">{% trans 'Forgotten password?' %}</a>
+                    </div>            
+                    <hr></hr>
+                    <a class="btn btn-success btn-signup-form" href="{% url 'signup' %}">{% trans 'Create new account' %}</a>
                 </div>
             </div>
-            <div class="row">
-                <div class="col-md-12">
-                    <input type="Login" id="login" value="Login" class="btn btn-primary btn-form">
-                </div>
-            </div>
-            <div class="wrapper">
-                <a href="{% url 'password_reset' %}">Lost password?</a>
-            </div>            
-            <hr></hr>
-            <input type="Register" id="register" value="Create new account" class="btn btn-success btn-form">
-        </div>
+        </form>
     </div>
 </body>
 {% endblock %}
