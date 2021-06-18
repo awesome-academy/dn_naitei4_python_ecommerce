@@ -14,7 +14,7 @@
             <ul class="navbar-nav">
                 {% if user.is_authenticated %}
                     <li class="nav-item">
-                        <a class="nav-link">{% trans 'Profile' %}</a>
+                        <a class="nav-link" href="{% url 'user-page' %}">{% trans 'Profile' %}</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link">{% trans 'Orders' %}</a>

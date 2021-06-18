@@ -1,6 +1,9 @@
+from django.contrib.auth.models import User
 from django.db import models
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
+from django.dispatch import receiver
+from django.db.models.signals import post_save
 
 class Category(models.Model):
     name = models.CharField(max_length=200, help_text=_('Enter a product category (e.g. Fashion Toy)'))
@@ -23,23 +26,8 @@ class Product(models.Model):
     def get_absolute_url(self):
         return reverse('product-detail', args=[str(self.id)])
 
-class User(models.Model):
-    username = models.CharField(max_length=200)
-    email = models.EmailField(max_length=200)
-    image = models.ImageField(default='/profile_pics/default.jpg', upload_to='profile_pics')
-    birthday = models.DateField(null=True,blank=True)
-    address = models.CharField(max_length=200)
-    ROLE = (
-        ('U','user'),
-        ('M','manager')
-    )
-    role = models.CharField(choices=ROLE, max_length=2, blank=True, default=ROLE[0][0], help_text='User role')
-    
-    def __str__(self):
-        return self.username
-
 class Order(models.Model):
-    user = models.ForeignKey('User', on_delete=models.CASCADE, null=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
     product = models.ForeignKey('Product', on_delete=models.CASCADE, null=True)
     total_price = models.FloatField(blank=True, null= True, default=0)
     date = models.DateField(null=True, blank=True)
@@ -54,7 +42,7 @@ class Order(models.Model):
         return self.user.username
 
 class FavoriteProduct(models.Model):
-    user = models.ForeignKey('User', on_delete=models.CASCADE, null=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
     product = models.ForeignKey('Product', on_delete=models.CASCADE, null=True)
     is_favorited = models.BooleanField(default=False)
 
@@ -64,3 +52,17 @@ class FavoriteProduct(models.Model):
 class Booking(models.Model):
     product = models.ForeignKey('Product', on_delete=models.CASCADE, null=True)
     order = models.ForeignKey('Order', on_delete=models.CASCADE, null=True)
+
+class Profile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
+    birthday = models.DateField(null=True,blank=True)
+    address = models.CharField(max_length=200,null=True)
+
+    @receiver(post_save, sender=User)
+    def create_user_profile(sender, instance, created, **kwargs):
+        if created:
+            Profile.objects.create(user=instance)
+
+    @receiver(post_save, sender=User)
+    def save_user_profile(sender, instance, **kwargs):
+        instance.profile.save()
