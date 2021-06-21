@@ -1,3 +1,4 @@
+from django.contrib.auth.models import User
 from django.urls.base import reverse
 from ecommerce.forms import ProfileForm, UserForm
 from django.views import generic
@@ -8,7 +9,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
 from django.utils.translation import gettext_lazy as _
-from .models import Product
+from .models import FavoriteProduct, Product
 
 class ProductListView(generic.ListView):
     model = Product
@@ -40,3 +41,21 @@ def update_profile(request):
         user_form = UserForm(instance=request.user)
         profile_form = ProfileForm(instance=request.user.profile)
     return render(request, 'ecommerce/profile.html', {'user_form': user_form,'profile_form': profile_form})
+
+@login_required
+def add_to_wishlist(request):
+    if request.method == "POST":
+        favorite = FavoriteProduct()
+        product_id = request.POST.get("product_pk")
+        favorite.user = User.objects.get(id=request.user.id)
+        favorite.product =Product.objects.get(id=product_id)
+        if not FavoriteProduct.objects.filter(user=request.user.id, product=product_id).first():
+            favorite.save()
+            is_favorited=True
+            messages.success(request,(f'{favorite.product} added to wishlist.'))
+        else:
+            FavoriteProduct.objects.filter(user=request.user.id, product=product_id).delete()
+        return redirect('products')
+    else:
+        favorite = FavoriteProduct()
+    return render(request = request, template_name="ecommerce/profile.html", context={'favorite':favorite})
