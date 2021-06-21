@@ -1,9 +1,10 @@
 {% extends "base_generic.html" %}
 {% load i18n %}
 {% block content %}
-  <main role="main" class="container">
+{% include 'ecommerce/advertise.html' %}
+<main role="main" class="container">
     <div class="my-3 py-3 text-center">
-        <h2 class="display-4">{% trans 'Products' %}</h2>
+        <h2 class="display-4">{% trans 'New products' %}</h2>
     </div>
     <section class="row">
         {% for product in product_list %}
