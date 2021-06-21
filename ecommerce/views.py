@@ -8,12 +8,12 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
 from django.utils.translation import gettext_lazy as _
-from .models import Product, Profile
+from .models import Product
 
 class ProductListView(generic.ListView):
     model = Product
     template_name = 'product_list.html'
-    paginate_by = 4
+    paginate_by = 8
 
 class ProductDetailView(generic.DetailView):
     model = Product
