@@ -33,7 +33,15 @@
                     <div class="card p-4">
                         <h2 class="font-bold pt-4">Favorited products</h2>
                         <hr>
-                        This is Favorited products area.
+                        {% for p in favorite.product %}
+                        <div class="col-sm-12 col-md-6 col-lg-4 pb-4">
+                            <div class="h-100">
+                                <div class="card-body">
+                                    <h5 class="card-title">{{ p.product_name }}</h5>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
                     </div>
                 </div>
             </div>
