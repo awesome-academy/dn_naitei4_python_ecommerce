@@ -1,4 +1,3 @@
-from django.urls.base import reverse
 from ecommerce.forms import ProfileForm, UserForm
 from django.views import generic
 from django.shortcuts import redirect, render
@@ -8,7 +7,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
 from django.utils.translation import gettext_lazy as _
-from .models import Product
+from .models import Cart, Product
 
 class ProductListView(generic.ListView):
     model = Product
@@ -40,3 +39,106 @@ def update_profile(request):
         user_form = UserForm(instance=request.user)
         profile_form = ProfileForm(instance=request.user.profile)
     return render(request, 'ecommerce/profile.html', {'user_form': user_form,'profile_form': profile_form})
+
+@login_required
+@transaction.atomic
+def cart_add(request, pk):
+    if request.method == 'POST':
+        quantity = request.POST['quantity']
+    else:
+        quantity = 0
+
+    product_get = Product.objects.filter(pk=pk).first()
+    if product_get:
+        product_stock = product_get.quantity
+    else:
+        product_stock = 0
+
+    in_cart = Cart.objects.filter(user=request.user, product__pk=pk).first()
+    if in_cart:
+        cart_quantity = in_cart.quantity
+    else:
+        cart_quantity = 0
+    
+    if int(quantity) > 0 :
+        if int(quantity) + cart_quantity > product_stock:
+            messages.add_message(request, messages.INFO, _("Out of stock limit"))
+        else:
+            if in_cart:
+                in_cart.quantity = int(quantity) + cart_quantity
+                in_cart.save()
+            else:
+                product_new = Cart(user=request.user, product=Product.objects.get(pk=pk), quantity=quantity)
+                product_new.save()
+            messages.add_message(request, messages.INFO, _('You added a product to your cart'))
+    else:
+        messages.add_message(request, messages.INFO, _('Please add product quantity more than 0'))
+    
+    return redirect(f'/ecommerce/product/{pk}')
+
+@login_required
+def cart_get(request):
+    cart = Cart.objects.filter(user=request.user).select_related('product')
+    stock_changed = False
+    total_price = 0
+    for item in cart:
+        in_stock = item.product.quantity
+        if in_stock == 0:
+            Cart.objects.filter(user=request.user, product=item.product).delete()
+            stock_changed = True
+        elif item.quantity > in_stock:
+            messages.add_message(request, messages.INFO, _(f"{item.product.product_name} is out of stock limit, please decrease your product items"))
+            stock_changed = True
+        total_price += item.product.price * item.quantity
+
+    return render(request, 'ecommerce/cart.html', {'cart': cart, 'changed':stock_changed, 'total':total_price})
+
+@login_required
+def increase_product_in_cart(request, pk):
+    product_get = Product.objects.filter(pk=pk).first()
+    if product_get:
+        product_stock = product_get.quantity
+    else:
+        product_stock = 0
+
+    item = Cart.objects.filter(user=request.user, product__pk=pk).first()
+    if item:
+        cart_quantity = item.quantity
+    else:
+        cart_quantity = 0
+    
+    if cart_quantity + 1 > product_stock:
+        messages.add_message(request, messages.INFO, _("Out of stock limit"))
+    else:
+        item.quantity = cart_quantity + 1
+        item.save()
+        messages.add_message(request, messages.INFO, _('You added one more item of product to your cart'))
+    
+    return redirect('/ecommerce/cart/')
+
+@login_required
+def decrease_product_in_cart(request, pk):
+    item = Cart.objects.filter(user=request.user, product__pk=pk).first()
+    if item:
+        cart_quantity = item.quantity
+    else:
+        cart_quantity = 0
+
+    if cart_quantity > 0:
+        item.quantity = cart_quantity - 1
+        if item.quantity == 0 :
+            item.delete()
+            messages.add_message(request, messages.INFO, _('You deleted product out of your cart'))
+        else: 
+            item.save()
+            messages.add_message(request, messages.INFO, _('You deleted one item of product out of your cart'))
+    else:
+        raise ValueError(_('Cart quantity must be more than 0'))
+    
+    return redirect('/ecommerce/cart/')
+
+@login_required
+def remove_from_cart(request, pk):
+    Cart.objects.filter(user=request.user, product__pk=pk).delete()
+    messages.add_message(request, messages.INFO, _('Product has been removed from cart'))
+    return redirect('/ecommerce/cart/')

@@ -1,0 +1,55 @@
+{% extends "base_generic.html" %}
+{% load static %}
+{% load i18n %}
+{% block content %}
+<div class="container my-4">
+    <h2 class="text-center my-4">{% trans 'Your Cart' %}</h2>
+    <table class="table">
+        <thead>
+            <tr>
+                <th scope="col">{% trans 'Product' %}</th>
+                <th scope="col">{% trans 'Quantity' %}</th>
+                <th scope="col">{% trans 'Price' %}</th>
+                <th scope="col" class="text-center">{% trans 'Amount' %}</th>
+                <th scope="col"></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% if cart.exists %}
+                {% for item in cart %}
+                    <tr>
+                        <td>{{ item.product.product_name }}</td>
+                        <td>
+                            <a href="{% url 'decrease-product-in-cart' item.product.id %}"><span class="badge badge-dark mr-2"><i class="fas fa-minus"></i></span></a>
+                                <span>{{ item.quantity }}</span>
+                            <a href="{% url 'increase-product-in-cart' item.product.id %}"><span class="badge badge-dark ml-2"><i class="fas fa-plus"></i></span></a>
+                        </td>
+                        <td>{{ item.product.price }} $</td>
+                        <td class="text-center">{{ item.get_total_price }} $</td>
+                        <td class="text-right">
+                            <a class="btn btn-danger" href="{% url 'remove_from_cart' item.product.id %}"><i class="far fa-trash-alt"></i></a>
+                        </td>
+                    </tr>
+                    <tr>
+                {% endfor %}
+            {% else %}
+                <tr>
+                    <td>Your cart is empty</td>
+                </tr>
+            {% endif %}
+            <td colspan="3">
+                <a class="btn btn-warning" href="{% url 'products' %}">{% trans 'Back to Home Page' %}</a>
+            </td>
+            <td class="text-center">
+                {% trans 'Total: ' %}<span class="font-weight-bold ml-1">{{ total }} $</span>
+            </td>
+            {% if total or changed %}
+            <td>
+                <a class="btn btn-info btn-block" href="#">{% trans 'Checkout' %}</a>
+            </td>
+            {% endif %}
+            </tr>
+        </tbody>
+    </table>
+</div>
+{% endblock %}

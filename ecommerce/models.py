@@ -66,3 +66,11 @@ class Profile(models.Model):
     @receiver(post_save, sender=User)
     def save_user_profile(sender, instance, **kwargs):
         instance.profile.save()
+
+class Cart(models.Model):
+    quantity = models.IntegerField(db_column='quantity')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
+    product = models.ForeignKey('Product', on_delete=models.CASCADE, null=True)
+
+    def get_total_price(self):
+        return self.quantity*self.product.price
