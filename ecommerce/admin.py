@@ -1,4 +1,4 @@
-from ecommerce.models import Booking, Category, FavoriteProduct, Order, Product, Profile, User
+from ecommerce.models import Booking, Cart, Category, FavoriteProduct, Order, Product, Profile, User
 from django.contrib import admin
 
 admin.site.register(Category)
@@ -42,8 +42,17 @@ class ProfileAdmin(admin.ModelAdmin):
     
     display_user.short_description = 'User'
 
+class CartAdmin(admin.ModelAdmin):
+    list_display = ('display_product','quantity')
+
+    def display_product(self, obj):
+        return obj.product.product_name
+    
+    display_product.short_description = 'Product name'
+
 admin.site.register(Product, ProductAdmin)
 admin.site.register(Order, OrderAdmin)
 admin.site.register(FavoriteProduct, FavoriteProductAdmin)
 admin.site.register(Profile, ProfileAdmin)
+admin.site.register(Cart, CartAdmin)
 

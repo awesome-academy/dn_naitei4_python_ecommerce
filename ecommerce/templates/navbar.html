@@ -32,6 +32,11 @@
                     <li class="nav-item">
                         <a class="nav-link" href="{% url 'logout'%}">{% trans 'Logout' %}</a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'cart_get' %}">{% trans 'Cart' %}<i class="fas fa-shopping-cart ml-2"></i>
+                            <span id="cart-total-items" class="badge badge-info"></span>
+                        </a>
+                    </li>
                 {% else %}
                     <li class="nav-item">
                         <a class="nav-link" href="{% url 'login' %}">{% trans 'Login' %}</a>
@@ -40,11 +45,6 @@
                         <a class="nav-link" href="{% url 'signup' %}">{% trans 'Sign Up' %}</a>
                     </li>
                 {% endif %}
-                <li class="nav-item">
-                    <a class="nav-link">{% trans 'Cart' %}<i class="fas fa-shopping-cart ml-2"></i>
-                        <span id="cart-total-items" class="badge badge-info"></span>
-                    </a>
-                </li>
             </ul>
         </div>
     </div>
