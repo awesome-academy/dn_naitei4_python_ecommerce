@@ -28,8 +28,10 @@ class Product(models.Model):
 
 class Order(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
-    product = models.ForeignKey('Product', on_delete=models.CASCADE, null=True)
     total_price = models.FloatField(blank=True, null= True, default=0)
+    shipping_address = models.CharField(max_length=200, null= True, help_text=_('Enter your shipping address (e.g. Danang, VietNam)'))
+    phone_number = models.CharField(max_length=20, null= True, help_text=_('Enter your phone number (e.g. 840247xxx )'))
+    total_price = models.IntegerField(default=0)
     date = models.DateField(null=True, blank=True)
     BOOKING_STATUS = (
         ('W','waiting'),
@@ -52,6 +54,8 @@ class FavoriteProduct(models.Model):
 class Booking(models.Model):
     product = models.ForeignKey('Product', on_delete=models.CASCADE, null=True)
     order = models.ForeignKey('Order', on_delete=models.CASCADE, null=True)
+    price = models.IntegerField(default=0)
+    quantity = models.IntegerField(default=0)
 
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
