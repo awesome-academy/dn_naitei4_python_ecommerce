@@ -45,7 +45,7 @@
             </td>
             {% if total or changed %}
             <td>
-                <a class="btn btn-info btn-block" href="#">{% trans 'Checkout' %}</a>
+                <a class="btn btn-info btn-block" href="{% url 'cart_checkout' %}">{% trans 'Checkout' %}</a>
             </td>
             {% endif %}
             </tr>

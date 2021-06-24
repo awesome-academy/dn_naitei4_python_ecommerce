@@ -1,0 +1,65 @@
+{% extends "base_generic.html" %}
+{% load static %}
+{% load i18n %}
+{% block content %}
+<div class="container my-4">
+    <h2 class="text-center my-4">{% trans 'Checkout' %}</h2>
+    <div class="row">
+        <div class="col-lg-7 order-2 order-lg-1">
+            <div class="card">
+                <div class="card-body">
+                    <h4 class="card-title text-center">{% trans 'Information form' %}</h5>
+                    <hr>
+                    <form method="POST">
+                        {% csrf_token %}
+                        <div class="form-group col-md-4">
+                            <div class="card-text-center">
+                                <p class="text-muted mb-0" style="font-size: 12px">{% trans 'Username:' %}</p>
+                                <p>{{ user.username }}</p>
+                                <p class="text-muted mb-0" style="font-size: 12px">{% trans 'Name:' %}</p>
+                                <p>{{ user.first_name }} {{ user.last_name }}</p>
+                                <p class="text-muted mb-0" style="font-size: 12px">{% trans 'Email:' %}</p>
+                                <p>{{ user.email }} </p>
+                                <p class="text-muted mb-0" style="font-size: 12px">{% trans 'Birthday:' %}</p>
+                                <p>{{ user.profile.birthday }}</p>
+                                <p class="text-muted mb-0" style="font-size: 12px">{% trans 'Address:' %}</p>
+                                <p>{{ user.profile.address }}</p>
+                                <p class="text-muted mb-0" style="font-size: 12px">{% trans 'Shipping address:' %}</p>
+                                <p><input id="shipping_address" type="text" name="shipping_address" value="{{ shipping_address }}"></p>
+                                <p class="text-muted mb-0" style="font-size: 12px">{% trans 'Phone number:' %}</p>
+                                <p><input id="phone_number" type="text" name="phone_number" value="{{ phone_number }}"></p>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-block btn-success my-4">{% trans 'Pay for the Order' %}</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-5 order-1 order-lg-2">
+            <div class="card">
+                <div class="card-body">
+                    <h4 class="card-title mb-4 text-center">{% trans 'Your order' %}</h5>
+                    <ul class="list-group">
+                        {% for item in cart %}
+                        <li class="list-group-item d-flex justify-content-between">
+                            <div>
+                                <h6 class="font-weight-bold">{{ item.product.product_name }}</h6>
+                                <small>{% trans 'Quantity: ' %}{{ item.quantity }}</small>
+                            </div>
+                            <span>{{ item.get_total_price }} $</span>
+                        </li>
+                        {% endfor %}
+                        <li class="list-group-item d-flex justify-content-between">
+                            <h6>{% trans 'TOTAL:' %}</h6>
+                            <span class="font-weight-bold text-success">{{ total }} $</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <div class="m-auto w-100 py-4">
+                <a class="btn btn-warning btn-block" href="{% url 'products' %}">{% trans 'Back to Home Page' %}</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
