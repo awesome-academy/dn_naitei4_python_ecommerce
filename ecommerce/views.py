@@ -190,3 +190,15 @@ def cart_checkout(request):
         messages.add_message(request, messages.INFO, _('Shipping address or phone number is invalid!'))
 
     return render(request, 'ecommerce/checkout.html', {'cart': cart, 'total': total_price})
+
+@login_required
+def order_get(request):
+    orders_list = Order.objects.filter(user=request.user).order_by('-id')
+    return render(request, 'ecommerce/order.html', {'order': orders_list})
+
+@login_required
+def order_detail(request, pk):
+    order = Order.objects.get(pk=pk)
+    detail = Booking.objects.filter(order=pk).select_related('product')
+
+    return render(request, 'ecommerce/order_detail.html', {'id': pk, 'status': order.status, 'detail': detail, 'total': order.total_price})
