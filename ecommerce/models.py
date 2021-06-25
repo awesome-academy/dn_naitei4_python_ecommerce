@@ -4,6 +4,7 @@ from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 from django.dispatch import receiver
 from django.db.models.signals import post_save
+from django.utils.timezone import now
 
 class Category(models.Model):
     name = models.CharField(max_length=200, help_text=_('Enter a product category (e.g. Fashion Toy)'))
@@ -28,9 +29,11 @@ class Product(models.Model):
 
 class Order(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
-    product = models.ForeignKey('Product', on_delete=models.CASCADE, null=True)
     total_price = models.FloatField(blank=True, null= True, default=0)
-    date = models.DateField(null=True, blank=True)
+    shipping_address = models.CharField(max_length=200, null= True, help_text=_('Enter your shipping address (e.g. Danang, VietNam)'))
+    phone_number = models.CharField(max_length=20, null= True, help_text=_('Enter your phone number (e.g. 840247xxx )'))
+    total_price = models.IntegerField(default=0)
+    date = models.DateField(default=now, blank=True)
     BOOKING_STATUS = (
         ('W','waiting'),
         ('A','approved'),
@@ -52,6 +55,8 @@ class FavoriteProduct(models.Model):
 class Booking(models.Model):
     product = models.ForeignKey('Product', on_delete=models.CASCADE, null=True)
     order = models.ForeignKey('Order', on_delete=models.CASCADE, null=True)
+    price = models.IntegerField(default=0)
+    quantity = models.IntegerField(default=1)
 
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')

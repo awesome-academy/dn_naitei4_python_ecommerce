@@ -7,7 +7,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
 from django.utils.translation import gettext_lazy as _
-from .models import Cart, Product
+from .models import Booking, Cart, Order, Product
 
 class ProductListView(generic.ListView):
     model = Product
@@ -142,3 +142,51 @@ def remove_from_cart(request, pk):
     Cart.objects.filter(user=request.user, product__pk=pk).delete()
     messages.add_message(request, messages.INFO, _('Product has been removed from cart'))
     return redirect('/ecommerce/cart/')
+
+@login_required
+@transaction.atomic
+def cart_checkout(request):
+    cart = Cart.objects.filter(user=request.user).select_related('product')
+    total_price = 0
+
+    for item in cart:
+        item_quantity = item.quantity
+        product_stock = item.product.quantity
+
+        if product_stock == 0:
+            item.delete()
+            total_price += item.product.price * item.quantity
+        elif item_quantity > product_stock:
+            messages.add_message(request, messages.INFO, _(f"{item.product.product_name} is out of stock limit, please decrease your product items in your cart"))
+            return redirect('/ecommerce/cart')
+        else:
+            total_price += item.product.price * item.quantity
+
+    if request.method == 'POST':
+        shipping_address = request.POST['shipping_address']
+        phone_number = request.POST['phone_number']
+    else:
+        shipping_address = ''
+        phone_number = ''
+
+    if shipping_address and phone_number:
+        order = Order(user=request.user, shipping_address=shipping_address, phone_number=phone_number, total_price=total_price, status='W')
+
+        if order:
+            order.save()
+            messages.add_message(request, messages.INFO, _('Order is waiting for being approved by admin! Please wait the approve message!'))
+            # Xử lý giảm số hàng của sản phẩm trong kho sau khi order
+            for item in cart:
+                order_detail = Booking(order=order, quantity=item.quantity, product=Product.objects.get(id=item.product.pk))
+                order_detail.save()
+                item.product.quantity -= item.quantity
+                item.product.save()
+            # Xử lý làm rỗng giỏ hàng
+            Cart.objects.filter(user=request.user).delete()
+            return redirect('/ecommerce/')
+        else:
+            messages.add_message(request, messages.INFO, _('Order is invalid, try again!'))
+    else:
+        messages.add_message(request, messages.INFO, _('Shipping address or phone number is invalid!'))
+
+    return render(request, 'ecommerce/checkout.html', {'cart': cart, 'total': total_price})
