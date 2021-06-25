@@ -51,10 +51,9 @@ class Order(models.Model):
 class FavoriteProduct(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
     product = models.ForeignKey('Product', on_delete=models.CASCADE, null=True)
-    is_favorited = models.BooleanField(default=False)
-
+    
     def __str__(self):
-        return self.user.username
+        return self.product.product_name
 
 class Booking(models.Model):
     product = models.ForeignKey('Product', on_delete=models.CASCADE, null=True)

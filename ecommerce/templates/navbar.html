@@ -24,7 +24,7 @@
                 </form>
                 {% if user.is_authenticated %}
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'user-page' %}">{% trans 'Profile' %}</a>
+                        <a class="nav-link" href="{% url 'get-profile' %}">{% trans 'Profile' %}</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="{% url 'order_get' %}">{% trans 'Orders' %}</a>
