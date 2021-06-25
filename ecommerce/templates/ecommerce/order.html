@@ -1,0 +1,48 @@
+{% extends "base_generic.html" %}
+{% load static %}
+{% load i18n %}
+{% block content %}
+<div class="container my-4">
+    <h2 class="text-center my-4">{% trans 'Your Orders' %}</h2>
+    <table class="table">
+        <thead>
+            <tr>
+                <th scope="col">{% trans 'ID' %}</th>
+                <th scope="col">{% trans 'Phone number' %}</th>
+                <th scope="col">{% trans 'Shipping address' %}</th>
+                <th scope="col">{% trans 'Price' %}</th>
+                <th scope="col">{% trans 'Date created' %}</th>
+                <th scope="col">{% trans 'Status' %}</th>
+                <th></th>
+            </tr>
+        </thead> 
+        <tbody>
+        {% if order.exists %}
+            {% for order in order %}
+                <tr>
+                    <td><p>#{{ order.id }}</p></td>
+                    <td><p>{{ order.phone_number }}</p></td>
+                    <td><p>{{ order.shipping_address }}</p></td>
+                    <td><p>{{ order.total_price }}</p></td>
+                    <td><p>{{ order.date }}</p></td>
+                    <td>
+                        {% if order.status == 'A' %}
+                        <p class="text-success">{% trans 'Approved' %}</p>
+                        {% elif order.status == 'W' %}
+                        <p class="text-warning">{% trans 'Waiting' %}</p>
+                        {% elif order.status == 'R' %}
+                        <p class="text-danger">{% trans 'Rejected' %}</p>
+                        {% endif %}
+                    </td>
+                    <td><a href="{% url 'order_detail' order.id %}"><i class="far fa-eye" href="{% url 'order_detail' order.id %}"></i></a></td>
+                </tr>
+            {% endfor %}
+        {% else %}
+            <tr>
+                <td>{% trans 'You do not have any order yet!' %}</td>
+            </tr>
+        {% endif %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
