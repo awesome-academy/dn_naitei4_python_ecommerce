@@ -3,10 +3,7 @@
 {% load i18n %}
 {% block content %}
 <div class="container my-4">
-    <h2 class="text-center my-4">{% trans 'Your Orders' %}</h2>
-    {% if user.is_staff %}
-    <h5 class="text-center my-4">{% trans 'Manager - ' %}{% if perms.ecommerce.can_mark_returned %}<a href="{% url 'all-order' %}">{% trans 'All orders' %}</a>{% endif %}</h5>
-    {% endif %}
+    <h2 class="text-center my-4">{% trans 'All Orders' %}</h2>
     <table class="table">
         <thead>
             <tr>
@@ -17,11 +14,12 @@
                 <th scope="col">{% trans 'Date created' %}</th>
                 <th scope="col">{% trans 'Status' %}</th>
                 <th></th>
+                <th></th>
             </tr>
         </thead> 
         <tbody>
-        {% if order.exists %}
-            {% for order in order %}
+        {% if order_list.exists %}
+            {% for order in order_list %}
                 <tr>
                     <td><p>#{{ order.id }}</p></td>
                     <td><p>{{ order.phone_number }}</p></td>
@@ -38,11 +36,23 @@
                         {% endif %}
                     </td>
                     <td><a href="{% url 'order_detail' order.id %}"><i class="far fa-eye" href="{% url 'order_detail' order.id %}"></i></a></td>
+                    <td>
+                        <form method="POST" action="{% url 'check-order-status' order.id %}">
+                            {% csrf_token %}
+                            <input type="text" class="border-floating" name="status" size="3" list="status" style="width: 65px; height: 35px;" multiple required>
+                            <datalist id="status">
+                            <option value="W">
+                            <option value="A">
+                            <option value="R">
+                            </datalist>
+                            <button class="btn btn-success float-right">{% trans 'Confirm' %}<i class="fas fa-check"></i></button>
+                        </form>
+                    </td>
                 </tr>
             {% endfor %}
         {% else %}
             <tr>
-                <td>{% trans 'You do not have any order yet!' %}</td>
+                <td>{% trans 'Do not have any order yet!' %}</td>
             </tr>
         {% endif %}
         </tbody>

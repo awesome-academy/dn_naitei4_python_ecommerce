@@ -2,9 +2,10 @@ from ecommerce.forms import ProfileForm, UserForm
 from django.views import generic
 from django.shortcuts import redirect, render
 from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.urls import reverse_lazy
 from django.contrib import messages
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, permission_required
 from django.db import transaction
 from django.utils.translation import gettext_lazy as _
 from .models import Booking, Cart, Order, Product
@@ -202,3 +203,26 @@ def order_detail(request, pk):
     detail = Booking.objects.filter(order=pk).select_related('product')
 
     return render(request, 'ecommerce/order_detail.html', {'id': pk, 'status': order.status, 'detail': detail, 'total': order.total_price})
+
+class OrderAllListView(PermissionRequiredMixin, generic.ListView):
+    model = Order
+    permission_required = 'ecommerce.can_mark_returned'
+    template_name = 'ecommerce/order_list_all.html'
+    paginate_by = 10
+
+    def get_queryset(self):
+        return Order.objects.order_by('-date')
+
+@login_required
+@permission_required('ecommerce.can_mark_returned', raise_exception=True)
+def check_order_status(request, pk):
+    if request.method == 'POST':
+        status = request.POST['status']
+    else:
+        status = 'W'
+    
+    order = Order.objects.filter(id=pk).first()
+    order.status = status
+    order.save()
+    
+    return redirect('/ecommerce/order/all/')
