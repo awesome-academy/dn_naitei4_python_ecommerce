@@ -41,8 +41,12 @@ class Order(models.Model):
     )
     status = models.CharField(choices=BOOKING_STATUS, max_length=2, blank=True, default=BOOKING_STATUS[0][0], help_text='Booking state')
 
+    class Meta:
+        ordering = ['date']
+        permissions = (("can_mark_returned", "Set order as returned"),)
+
     def __str__(self):
-        return self.user.username
+        return f'{self.id} ({self.user.username})'
 
 class FavoriteProduct(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
