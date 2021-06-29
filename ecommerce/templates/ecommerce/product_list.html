@@ -4,7 +4,35 @@
 {% include 'ecommerce/advertise.html' %}
 <main role="main" class="container">
     <div class="my-3 py-3 text-center">
-        <h2 class="display-4">{% trans 'New products' %}</h2>
+        <h2 class="display-4">{% trans 'Products' %}</h2>
+    </div>
+    <div class="my-3 py-3 d-block w-100" style="padding-left: 40px;">
+        <form id="advanced-filter" class="form-inline my-2 my-lg-0" action="{% url 'product_search' %}">
+            {% csrf_token %}
+            <div class="form-group text-light mr-2 p-2 rounded rounded-lg">
+                <label for="product_name" class="font-weight-bold mx-sm-2"><span class="text-dark">Search: </span></label>
+                <input id="product_name" class="form-control mr-sm-2" name="product_name" type="search" placeholder="Search" aria-label="Search">
+            </div>
+
+            <div class="form-group text-light mr-2 p-2 rounded rounded-lg">
+                <label for="category_name" class="font-weight-bold mx-sm-2"><span class="text-dark">Category: </span></label>
+                <select name="filter" class="form-control">
+                    <option value="All">All</option>
+                    {% for category in category_list %}
+                    <option value="{{ category.name }}">{{ category.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div id="sort" class="form-group text-light mx-2 p-2 rounded rounded-lg">
+                <label for="sort" class="font-weight-bold mx-sm-2"><span class="text-dark">Sort by price: </span></label>
+                <input id="minimum" class="form-control mr-sm-2" style="width: 110px; " name="minimum" type="number" placeholder="Minimum" aria-label="Minimum">
+                <span class="text-dark mr-sm-2"> ⇨ </span>
+                <input id="maximum" class="form-control" style="width: 110px; " name="maximum" type="number" placeholder="Maximum" aria-label="Maximum">
+            </div>
+            
+            <button class="btn btn-warning m-sm-2" type="submit"><i class="fas fa-filter fa-fw"></i>Apply</button></a>
+        </form>
     </div>
     <section class="row">
         {% for product in product_list %}

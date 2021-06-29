@@ -1,3 +1,4 @@
+from my_app.settings import EMAIL_HOST_USER
 from ecommerce.forms import ProfileForm, UserForm
 from django.views import generic
 from django.shortcuts import redirect, render
@@ -7,13 +8,18 @@ from django.urls import reverse_lazy
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required, permission_required
 from django.db import transaction
+from django.core.mail import send_mail
 from django.utils.translation import gettext_lazy as _
-from .models import Booking, Cart, Order, Product
+from .models import Booking, Cart, Category, Order, Product
 
-class ProductListView(generic.ListView):
-    model = Product
-    template_name = 'product_list.html'
-    paginate_by = 8
+def product_get(request):
+    products = Product.objects.all()
+    categories = Category.objects.all()
+    context = {
+        'product_list':products,
+        'category_list':categories
+    }
+    return render(request, 'ecommerce/product_list.html',context=context)
 
 class ProductDetailView(generic.DetailView):
     model = Product
@@ -176,6 +182,7 @@ def cart_checkout(request):
         if order:
             order.save()
             messages.add_message(request, messages.INFO, _('Order is waiting for being approved by admin! Please wait the approve message!'))
+            send_mail(f'New order #{order.id} status annoucement',f'New order #{order.id} have been made, please check waiting order.', EMAIL_HOST_USER , [EMAIL_HOST_USER] ,fail_silently=False,)
             # Xử lý giảm số hàng của sản phẩm trong kho sau khi order
             for item in cart:
                 order_detail = Booking(order=order, quantity=item.quantity, product=Product.objects.get(id=item.product.pk))
@@ -224,5 +231,35 @@ def check_order_status(request, pk):
     order = Order.objects.filter(id=pk).first()
     order.status = status
     order.save()
-    
+
+    if status == 'A':
+        send_mail(f'Your order #{pk} status annoucement',f'Your order #{pk} have been accepted, please wait for delivery. Big thanks for your support.', EMAIL_HOST_USER , [order.user.username],fail_silently=False,)
+    elif  status == 'R':
+        send_mail(f'Your order #{pk} status annoucement',f'Your order #{pk} have been rejected, please check your order in our page. Big thanks for your support.', EMAIL_HOST_USER , [order.user.username],fail_silently=False,)
     return redirect('/ecommerce/order/all/')
+
+def product_search(request):
+    products = Product.objects.all()
+    category_object = Category.objects.all()
+
+    if 'product_name' in request.GET:
+        product_name = request.GET["product_name"]
+        products = products.filter(product_name__icontains=product_name)
+
+    if 'filter' in request.GET:
+        category_name = request.GET["filter"]
+        if category_name != 'All':
+            products = products.filter(category__name=category_name)
+
+    if 'minimum' and 'maximum' in request.GET:
+        minimum = request.GET["minimum"]
+        maximum = request.GET["maximum"]
+        if minimum and maximum:
+            products = products.filter(price__range=[minimum,maximum])
+    
+    context = {
+        'product_list': products, 
+        'category_list':category_object
+    }
+
+    return render(request, 'ecommerce/product_list.html', context=context)
