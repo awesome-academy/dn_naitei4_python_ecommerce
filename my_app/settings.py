@@ -163,3 +163,10 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 # Simplified static file serving.
 # https://warehouse.python.org/project/whitenoise/
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
+ALLOWED_HOSTS = [
+    '*',
+    '0.0.0.0',
+    '127.0.0.1',
+    'rocky-forest-88270.herokuapp.com',
+]
