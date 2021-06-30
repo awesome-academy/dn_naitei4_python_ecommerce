@@ -16,7 +16,10 @@ from .models import Booking, Cart, Category, FavoriteProduct, Order, Product
 def product_get(request):
     products = Product.objects.all()
     categories = Category.objects.all()
-    favorite_product_ids = FavoriteProduct.objects.filter(user=request.user).values_list('product_id', flat=True)
+    if request.user.is_authenticated:
+        favorite_product_ids = FavoriteProduct.objects.filter(user=request.user).values_list('product_id', flat=True)
+    else:
+        favorite_product_ids=[]
     paginator = Paginator(products, 8)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
@@ -282,8 +285,12 @@ def product_search(request):
         if minimum and maximum:
             products = products.filter(price__range=[minimum,maximum])
     
+    paginator = Paginator(products, 8)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
     context = {
-        'page_obj': products, 
+        'page_obj': page_obj, 
         'category_list':category_object
     }
 
