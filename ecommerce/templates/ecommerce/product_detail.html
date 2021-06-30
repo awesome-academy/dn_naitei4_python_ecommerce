@@ -29,7 +29,9 @@
             </form>
             {% else %}
             <div style="padding-left: -10px; padding-top: 25px;">
-              <button class="btn btn-info" href="{% url 'login' %}"><i class="fas fa-shopping-cart mr-2"></i>{% trans 'Add to cart' %}</button>
+              <a href="{% url 'login' %}">
+              <button class="btn btn-info"><i class="fas fa-shopping-cart mr-2"></i>{% trans 'Add to cart' %}</button>
+              </a>
             </div>
             {% endif %}
           </div>
