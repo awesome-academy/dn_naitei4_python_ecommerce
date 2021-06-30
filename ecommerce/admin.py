@@ -23,7 +23,7 @@ class OrderAdmin(admin.ModelAdmin):
 
 class FavoriteProductAdmin(admin.ModelAdmin):
     list_display = ('display_user','product')
-    list_filter = ('is_favorited','user','product')
+    list_filter = ('user','product')
 
     def display_user(self, obj):
         return obj.user.username

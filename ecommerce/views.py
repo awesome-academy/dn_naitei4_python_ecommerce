@@ -9,15 +9,22 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required, permission_required
 from django.db import transaction
 from django.core.mail import send_mail
+from django.core.paginator import Paginator
 from django.utils.translation import gettext_lazy as _
-from .models import Booking, Cart, Category, Order, Product
+from .models import Booking, Cart, Category, FavoriteProduct, Order, Product
 
 def product_get(request):
     products = Product.objects.all()
     categories = Category.objects.all()
+    favorite_product_ids = FavoriteProduct.objects.filter(user=request.user).values_list('product_id', flat=True)
+    paginator = Paginator(products, 8)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
     context = {
-        'product_list':products,
-        'category_list':categories
+        'category_list':categories,
+        'favorite_product_ids':favorite_product_ids,
+        "page_obj":page_obj
     }
     return render(request, 'ecommerce/product_list.html',context=context)
 
@@ -39,13 +46,31 @@ def update_profile(request):
             user_form.save()
             profile_form.save()
             messages.success(request, _('Your profile was successfully updated!'))
-            return redirect('user-page')
+            return redirect('get-profile')
         else:
             messages.error(request, _('Please correct the error below.'))
     else:
         user_form = UserForm(instance=request.user)
         profile_form = ProfileForm(instance=request.user.profile)
-    return render(request, 'ecommerce/profile.html', {'user_form': user_form,'profile_form': profile_form})
+
+    context = {
+        'user_form': user_form,
+        'profile_form': profile_form
+    }
+    return render(request, 'ecommerce/profile.html', context=context)
+
+@login_required
+def get_profile(request):
+    user_form = UserForm(instance=request.user)
+    profile_form = ProfileForm(instance=request.user.profile)
+    favorites = FavoriteProduct.objects.filter(user=request.user)
+
+    context = {
+        'user_form': user_form,
+        'profile_form': profile_form,
+        'favorites':favorites
+    }
+    return render(request, 'ecommerce/profile.html', context=context)
 
 @login_required
 @transaction.atomic
@@ -258,8 +283,23 @@ def product_search(request):
             products = products.filter(price__range=[minimum,maximum])
     
     context = {
-        'product_list': products, 
+        'page_obj': products, 
         'category_list':category_object
     }
 
     return render(request, 'ecommerce/product_list.html', context=context)
+
+@login_required
+def add_favorite_product(request, pk):
+    in_wishlist = FavoriteProduct.objects.filter(user=request.user, product__pk=pk).first()
+
+    if in_wishlist:
+        in_wishlist.delete()
+        messages.add_message(request, messages.INFO, _('You deleted a product from your wishlist'))
+
+    else:
+        new_obj = FavoriteProduct.objects.create(user=request.user, product_id=pk)        
+        new_obj.save()
+        messages.add_message(request, messages.INFO, _('You added a product to your wishlist'))
+
+    return redirect('/ecommerce/')
