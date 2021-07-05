@@ -146,6 +146,7 @@ class CartCheckoutViewTest(TestCase):
 
         self.test_product = ProductFactory(quantity='0')
         self.test_cart = CartFactory(product=self.test_product, quantity='1')
+        self.test_order = OrderFactory(user=test_user)
            
     def test_view_url_accessible_by_name(self):
         response = self.client.get(reverse('cart_checkout'))
@@ -169,19 +170,28 @@ class CartCheckoutViewTest(TestCase):
         # Check we used correct template
         self.assertTemplateUsed(response, 'ecommerce/checkout.html')
 
-    def test_product_quantity_validate(self):
+    def test_product_out_of_stock_validate(self):
         self.client.login(username = 'testuser', password = '1X<ISRUkw+tuK')
         self.client.get(reverse('cart_add', kwargs={'pk': self.test_product.pk}))
-        response = self.client.get(reverse('cart_checkout'))
-        print(response)
-        self.assertEqual(response.status_code, 200)
-        # self.assertRedirects(response, 'ecommerce/checkout.html')
+        response = self.client.get('/ecommerce/cart/checkout')
+        self.assertRedirects(response, '/ecommerce/cart' , status_code=404, msg_prefix=f"{self.test_product.product_name} is out of stock limit, please decrease your product items in your cart")
 
     def test_order_infomation_null(self):
         self.client.login(username = 'testuser', password = '1X<ISRUkw+tuK')
-        self.test_order = OrderFactory(shipping_address='',phone_number='')
-        response = self.client.get(reverse('cart_checkout'))
-        self.assertRedirects(response, 'ecommerce/checkout.html')
+        response = self.client.get('/ecommerce/cart/checkout')
+        self.assertRedirects(response,'/ecommerce/cart', status_code=404, msg_prefix="Shipping address or phone number is invalid!")
+
+    def test_post_order_information_null(self):
+        self.client.login(username = 'testuser', password = '1X<ISRUkw+tuK')
+        response = self.client.post('/ecommerce/cart/checkout')
+        self.assertRedirects(response, reverse('cart_checkout') , status_code=301, msg_prefix="Shipping address or phone number is invalid!")
+    
+    def test_post_order_information_success(self):
+        self.client.login(username = 'testuser', password = '1X<ISRUkw+tuK')
+        response = self.client.post('/ecommerce/cart/checkout', data={"shipping_address": self.test_order.shipping_address, "phone_number":self.test_order.phone_number})
+        new_order = self.client.get(reverse('order_detail', kwargs={'pk': self.test_order.pk}))
+        self.assertEqual(str(new_order.context['total_price']), self.test_order.total_price)
+        self.assertRedirects(response, reverse('products') , status_code=200, msg_prefix="Order is waiting for being approved by admin! Please wait the approve message!")
 
 class CartViewTest(TestCase):
     def setUp(self):
