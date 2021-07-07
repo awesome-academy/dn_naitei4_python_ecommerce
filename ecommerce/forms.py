@@ -1,5 +1,6 @@
 from django import forms
 from django.contrib.auth.models import User
+from django.utils.translation import gettext_lazy as _
 from .models import Profile
 
 class UserForm(forms.ModelForm):
@@ -11,3 +12,4 @@ class ProfileForm(forms.ModelForm):
     class Meta:
         model = Profile
         fields = ('birthday','address')
+        labels = {'birthday':_('birthday'),'address':_('address')}

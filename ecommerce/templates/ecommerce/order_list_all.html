@@ -8,6 +8,7 @@
         <thead>
             <tr>
                 <th scope="col">{% trans 'ID' %}</th>
+                <th scope="col">{% trans 'Username'%}</th>
                 <th scope="col">{% trans 'Phone number' %}</th>
                 <th scope="col">{% trans 'Shipping address' %}</th>
                 <th scope="col">{% trans 'Price' %}</th>
@@ -22,6 +23,7 @@
             {% for order in order_list %}
                 <tr>
                     <td><p>#{{ order.id }}</p></td>
+                    <td><p>{{ order.user.username }}</p></td>
                     <td><p>{{ order.phone_number }}</p></td>
                     <td><p>{{ order.shipping_address }}</p></td>
                     <td><p>{{ order.total_price }} $</p></td>
@@ -39,13 +41,21 @@
                     <td>
                         <form method="POST" action="{% url 'check-order-status' order.id %}">
                             {% csrf_token %}
-                            <input type="text" class="border-floating" name="status" size="3" list="status" style="width: 65px; height: 35px;" multiple required>
-                            <datalist id="status">
-                            <option value="W">
-                            <option value="A">
-                            <option value="R">
-                            </datalist>
-                            <button class="btn btn-success float-right">{% trans 'Confirm' %}<i class="fas fa-check"></i></button>
+                            <select id="status" name="status" style="width: 95px; height: 35px;">
+                                <option value="" selected disabled hidden>
+                                {% if order.status == 'W' %}
+                                Waiting
+                                {% elif order.status == 'A'%}
+                                Approved
+                                {% else %}
+                                Rejected
+                                {% endif %}
+                                </option>
+                                <option value="W">Waiting</option>
+                                <option value="A">Approved</option>
+                                <option value="R">Rejected</option>
+                            </select>
+                            <button class="btn btn-success float-right text-center" style="width: 95px; height: 35px;">{% trans 'Confirm' %}</button>
                         </form>
                     </td>
                 </tr>
