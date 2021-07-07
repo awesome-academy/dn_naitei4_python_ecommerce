@@ -229,8 +229,21 @@ def cart_checkout(request):
 
 @login_required
 def order_get(request):
-    orders_list = Order.objects.filter(user=request.user).order_by('-id')
+    orders_list = Order.objects.filter(user=request.user).order_by('-status','-date')
     return render(request, 'ecommerce/order.html', {'order': orders_list})
+
+@login_required
+@transaction.atomic
+def order_remove(request, pk):
+    Order.objects.filter(user=request.user, id=pk).delete()
+    messages.add_message(request, messages.INFO, _('Order has been removed')) 
+
+    bookings = Booking.objects.filter(order=pk).select_related('product')
+    for item in bookings:
+        item.product.quantity += item.quantity
+        item.product.save()
+
+    return redirect('/ecommerce/order/')
 
 @login_required
 def order_detail(request, pk):
@@ -246,7 +259,7 @@ class OrderAllListView(PermissionRequiredMixin, generic.ListView):
     paginate_by = 10
 
     def get_queryset(self):
-        return Order.objects.order_by('-date')
+        return Order.objects.order_by('-status','-date')
 
 @login_required
 @permission_required('ecommerce.can_mark_returned', raise_exception=True)
