@@ -11,7 +11,7 @@ from django.db import transaction
 from django.core.mail import send_mail
 from django.core.paginator import Paginator
 from django.utils.translation import gettext_lazy as _
-from .models import Booking, Cart, Category, FavoriteProduct, Order, Product
+from .models import Booking, Cart, Category, FavoriteProduct, Order, Product, Review
 
 def product_get(request):
     products = Product.objects.all()
@@ -31,8 +31,20 @@ def product_get(request):
     }
     return render(request, 'ecommerce/product_list.html',context=context)
 
-class ProductDetailView(generic.DetailView):
-    model = Product
+def product_detail(request, pk):
+    product = Product.objects.filter(pk=pk).first()
+    review = Review.objects.filter(product__pk=pk)
+    pd = Booking.objects.select_related('order').filter(product__pk=pk)
+    paid = True if pd else False
+    
+    context = {
+        'product':product,
+        'review':review,
+        'paid':paid
+    }
+
+    return render(request,'ecommerce/product_detail.html',context=context)
+
 
 class SignUpView(generic.CreateView):
     form_class = UserCreationForm

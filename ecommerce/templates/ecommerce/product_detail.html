@@ -45,43 +45,88 @@
   </div>
   <div class="row pt-4">
     <div class="col-md-7">
-      <div class="d-flex justify-content-end pb-4">
-        <div class="d-flex align-items-center flex-nowrap">
-          <label class="fs-sm text-muted text-nowrap me-2 d-none d-sm-block" for="sort-reviews">Sort by: </label>
-          <div class="form-element form-select-sm" style="padding-left: 10px; padding-bottom: 10px;">
-            <select class="form-control" id="sort-reviews">
-              <option>Newest</option>
-              <option>Oldest</option>
-            </select>
+      <div class="row pb-3">
+        <div class="col-lg-8 col-md-5">
+          <h3 class="h3 mb-8">All reviews</h3>
+        </div>
+        <div class="d-flex justify-content-end pb-4">
+          <div class="d-flex align-items-center flex-nowrap">
+            <label class="fs-sm text-muted text-nowrap me-2 d-none d-sm-block" for="sort-reviews">Sort by: </label>
+            <div class="form-element form-select-sm" style="padding-left: 10px; padding-bottom: 10px;">
+              <select class="form-control" id="sort-reviews">
+                <option>Newest</option>
+                <option>Oldest</option>
+              </select>
+            </div>
           </div>
         </div>
       </div>
-      <div class="product-review pb-4 mb-4 border-bottom">
-        <div class="d-flex mb-3">
-          <div class="d-flex align-items-center me-4 pe-2">
-            <img class ="rounded-circle" width="50" src="\media\profile_pics\avatar.png" alt="User">
-            <div class="ps-3" style="padding-left: 20px;">
-              <h6 class="fs-sm mb-0">Ngọc Duyên</h6>
-              <span class="fs-ms text-muted">June 28, 2019</span>
-            </div>
-            <div>
-              <div class="star-rating">
-                <i class="star-rating-icon ci-star-filled active"></i>
-                <i class="star-rating-icon ci-star-filled active"></i>
-                <i class="star-rating-icon ci-star-filled active"></i>
-                <i class="star-rating-icon ci-star-filled active"></i>
-                <i class="star-rating-icon ci-star"></i>
+      {% if review.exists %}
+      {% for rv in review %}
+        <div class="product-review pb-4 mb-4 border-bottom">
+          <div class="d-flex mb-3">
+            <div class="d-flex align-items-center me-4 pe-2">
+              <img class ="rounded-circle" width="50" src="\media\profile_pics\avatar.png" alt="User">
+              <div class="ps-3" style="padding-left: 20px;">
+                <h6 class="fs-sm mb-0">{{ rv.user.username }}</h6>
+                <span class="fs-ms text-muted">{{ rv.created }}</span>
               </div>
             </div>
           </div>
+          {% if rv.rate == 5 %}
+          <div style="padding-bottom: 10px;">
+            {% for i in "12345" %}
+            <i class="fas fa-star" style="color: orange;"></i>
+            {% endfor %}
+          </div>
+          {% elif rv.rate == 4 %}
+          <div style="padding-bottom: 10px;">
+            {% for i in "1234" %}
+            <i class="fas fa-star" style="color: orange;"></i>
+            {% endfor %}
+            <i class="fa fa-star-o"></i>
+          </div>
+          {% elif rv.rate == 3 %}
+          <div style="padding-bottom: 10px;">
+            {% for i in "123" %}
+            <i class="fas fa-star" style="color: orange;"></i>
+            {% endfor %}
+            {% for i in "12" %}
+            <i class="fa fa-star-o"></i>
+            {% endfor %}
+          </div>
+          {% elif rv.rate == 2 %}
+          <div style="padding-bottom: 10px;">
+            {% for i in "12" %}
+            <i class="fas fa-star" style="color: orange;"></i>
+            {% endfor %}
+            {% for i in "123" %}
+            <i class="fa fa-star-o"></i>
+            {% endfor %}
+          </div>
+          {% elif rv.rate == 1 %}
+          <div style="padding-bottom: 10px;">
+            <i class="fas fa-star" style="color: orange;"></i>
+            {% for i in "1234" %}
+            <i class="fa fa-star-o"></i>
+            {% endfor %}
+          </div>
+          {% endif %}
+          <h5 class="h5 pb-2">{{ rv.title }}</h3>
+          <p class="fs-md mb-2">
+            {{ rv.content }}
+          </p>
         </div>
-        <p class="fs-md mb-2">
-          Sản phẩm vip pro
-        </p>
-      </div>
+        {% endfor %}
+      {% else %}
+      <p class="fs-md mb-2">
+        There are no reviews for this product yet.
+      </p>
+      {% endif %}
     </div>
     
     <!-- Reviview Form -->
+    {% if paid %}
     <div class="col-md-5 mt-2 pt-4 mt-md-0 pt-md-0">
       <div class="card p-4">
         <h3 class="h4 pb-2">Write a review</h3>
@@ -117,6 +162,7 @@
         </div>
       </form>
     </div>  
+    {% endif %}
   </div>
 </section>
 {% endblock %}
