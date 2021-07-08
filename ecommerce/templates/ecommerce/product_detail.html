@@ -1,5 +1,6 @@
 {% extends "base_generic.html" %}
 {% load i18n %}
+{% load static %}
 {% block content %}
 <section id="product-container" class="container my-5">
   <div id="product-details" class="card border-0">
@@ -38,6 +39,84 @@
         </div>
       </div>
     </div>
+  </div>
+  <div class="col-lg-12 col-md-12">
+    <hr class="mt-4 mb-3">
+  </div>
+  <div class="row pt-4">
+    <div class="col-md-7">
+      <div class="d-flex justify-content-end pb-4">
+        <div class="d-flex align-items-center flex-nowrap">
+          <label class="fs-sm text-muted text-nowrap me-2 d-none d-sm-block" for="sort-reviews">Sort by: </label>
+          <div class="form-element form-select-sm" style="padding-left: 10px; padding-bottom: 10px;">
+            <select class="form-control" id="sort-reviews">
+              <option>Newest</option>
+              <option>Oldest</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="product-review pb-4 mb-4 border-bottom">
+        <div class="d-flex mb-3">
+          <div class="d-flex align-items-center me-4 pe-2">
+            <img class ="rounded-circle" width="50" src="\media\profile_pics\avatar.png" alt="User">
+            <div class="ps-3" style="padding-left: 20px;">
+              <h6 class="fs-sm mb-0">Ngọc Duyên</h6>
+              <span class="fs-ms text-muted">June 28, 2019</span>
+            </div>
+            <div>
+              <div class="star-rating">
+                <i class="star-rating-icon ci-star-filled active"></i>
+                <i class="star-rating-icon ci-star-filled active"></i>
+                <i class="star-rating-icon ci-star-filled active"></i>
+                <i class="star-rating-icon ci-star-filled active"></i>
+                <i class="star-rating-icon ci-star"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+        <p class="fs-md mb-2">
+          Sản phẩm vip pro
+        </p>
+      </div>
+    </div>
+    
+    <!-- Reviview Form -->
+    <div class="col-md-5 mt-2 pt-4 mt-md-0 pt-md-0">
+      <div class="card p-4">
+        <h3 class="h4 pb-2">Write a review</h3>
+        <form method="post" class="row padding-top" action="">
+        <div class="h6 pb-2 col-sm-12">
+            <label class="form-label" for="review-rating">Rating<span class="text-danger">*</span></label>
+            <div class="form-element form-select">
+              <select class="form-control" name="review-rating">
+                <option value>Choose rating</option>
+                <option value="5">5 stars</option>
+                <option value="4">4 stars</option>
+                <option value="3">3 stars</option>
+                <option value="2">2 stars</option>
+                <option value="1"> 1 star</option>
+              </select>
+            </div>
+            <div class="invalid-feedback">Please choose rating!</div>
+        </div>
+        <div class="h6 pb-2 col-sm-12">
+          <label class="form-label" for="review-title">Title<span class="text-danger">*</span></label>
+          <input type="text" class="form-control" placeholder="Review title" required id="review-title">
+          <div class="invalid-feedback">Please enter review title!</div>
+          <small class="form-text text-muted">Your review title must be at least 20 characters.</small>
+        </div>
+        <div class="h6 pb-2 col-sm-12">
+          <label class="form-label" for="review-content">Content<span class="text-danger">*</span></label>
+          <textarea rows="6" class="form-control" placeholder="Your review" required name="review-content"></textarea>
+          <div class="invalid-feedback">Please enter review content!</div>
+          <small class="form-text text-muted">Your review content must be at least 50 characters.</small>
+        </div>
+        <div class="mb-3 mb-4 col-sm-12">
+          <button type="submit" class="btn btn-danger btn-shadow d-block w-100">Submit a Review</button>
+        </div>
+      </form>
+    </div>  
   </div>
 </section>
 {% endblock %}
