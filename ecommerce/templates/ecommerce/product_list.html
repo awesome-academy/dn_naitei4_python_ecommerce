@@ -47,7 +47,7 @@
                     <p class="card-text mb-1">{{ product.product_name }}</p>
                     <p class="card-text font-weight-bold">{{ product.price|floatformat:2 }} $</p>
                     <div class="row">
-                        <div class="col-md-3">
+                        <div class="col-md-2">
                             {% if user.is_authenticated %}
                             <form action="{% url 'add-favorite-product' product.pk %}" method="POST">
                                 {% csrf_token %}
@@ -62,9 +62,18 @@
                             <a href="{% url 'login' %}" class="btn btn-outline-danger" style="font-size:18px; border-radius: 50%; border-color:ivory;">♡</a>
                             {% endif %}
                         </div>
-                        <div class="col-md-7">
+                        <div class="col-md-8" style="padding-left: 25px;">
                             <a href="{{ product.get_absolute_url }}" class="btn btn-primary">{% trans 'View details' %}</a>
                         </div>
+                        {% if user.is_authenticated %}
+                        <a href="{{ product.get_absolute_url }}">
+                            <button class="btn" style="padding-left: 0px;"><i class="fas fa-shopping-cart ml-2" ></i></button>
+                        </a>
+                        {% else %}
+                        <a href="{% url 'login' %}">
+                            <button class="btn" style="padding-left: 0px;"><i class="fas fa-shopping-cart ml-2" ></i></button>
+                        </a>
+                        {% endif %}
                     </div>
                 </div>
             </div>
