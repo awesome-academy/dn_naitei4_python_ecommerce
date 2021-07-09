@@ -1,7 +1,7 @@
 from my_app.settings import EMAIL_HOST_USER
-from ecommerce.forms import ProfileForm, UserForm
+from ecommerce.forms import ProfileForm, ReviewForm, UserForm
 from django.views import generic
-from django.shortcuts import redirect, render
+from django.shortcuts import get_object_or_404, redirect, render
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.urls import reverse_lazy
@@ -36,11 +36,13 @@ def product_detail(request, pk):
     review = Review.objects.filter(product__pk=pk)
     pd = Booking.objects.select_related('order').filter(product__pk=pk)
     paid = True if pd else False
+    review_form = ReviewForm()
     
     context = {
         'product':product,
         'review':review,
-        'paid':paid
+        'paid':paid,
+        'review_form':review_form
     }
 
     return render(request,'ecommerce/product_detail.html',context=context)
@@ -335,3 +337,25 @@ def add_favorite_product(request, pk):
         messages.add_message(request, messages.INFO, _('You added a product to your wishlist'))
 
     return redirect('/ecommerce/')
+
+@login_required
+@transaction.atomic
+def review_add(request, pk):
+    product = get_object_or_404(Product, pk=pk)
+    if request.method == "POST":
+        review_form = ReviewForm(request.POST)
+        if review_form.is_valid():
+            review = review_form.save(commit=False)
+            review.product = product
+            review.user = request.user
+            review.save()
+        return redirect(f'/ecommerce/product/{pk}')
+    else:
+        review_form = ReviewForm(user=request.user, product=product)
+        
+        context = {
+            'review_form': review_form
+        }
+        return render(request, 'ecommerce/product_detail.html', context=context)
+    
+   

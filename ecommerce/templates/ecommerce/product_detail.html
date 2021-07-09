@@ -126,42 +126,22 @@
     </div>
     
     <!-- Reviview Form -->
+    {% if user.is_authenticated %}
     {% if paid %}
     <div class="col-md-5 mt-2 pt-4 mt-md-0 pt-md-0">
       <div class="card p-4">
         <h3 class="h4 pb-2">Write a review</h3>
-        <form method="post" class="row padding-top" action="">
+        <form method="POST" class="row padding-top" action="{% url 'review_add' product.pk %}" enctype="multipart/form-data">
+        {% csrf_token %}
         <div class="h6 pb-2 col-sm-12">
-            <label class="form-label" for="review-rating">Rating<span class="text-danger">*</span></label>
-            <div class="form-element form-select">
-              <select class="form-control" name="review-rating">
-                <option value>Choose rating</option>
-                <option value="5">5 stars</option>
-                <option value="4">4 stars</option>
-                <option value="3">3 stars</option>
-                <option value="2">2 stars</option>
-                <option value="1"> 1 star</option>
-              </select>
-            </div>
-            <div class="invalid-feedback">Please choose rating!</div>
-        </div>
-        <div class="h6 pb-2 col-sm-12">
-          <label class="form-label" for="review-title">Title<span class="text-danger">*</span></label>
-          <input type="text" class="form-control" placeholder="Review title" required id="review-title">
-          <div class="invalid-feedback">Please enter review title!</div>
-          <small class="form-text text-muted">Your review title must be at least 20 characters.</small>
-        </div>
-        <div class="h6 pb-2 col-sm-12">
-          <label class="form-label" for="review-content">Content<span class="text-danger">*</span></label>
-          <textarea rows="6" class="form-control" placeholder="Your review" required name="review-content"></textarea>
-          <div class="invalid-feedback">Please enter review content!</div>
-          <small class="form-text text-muted">Your review content must be at least 50 characters.</small>
+            {{ review_form.as_p }}
         </div>
         <div class="mb-3 mb-4 col-sm-12">
           <button type="submit" class="btn btn-danger btn-shadow d-block w-100">Submit a Review</button>
         </div>
       </form>
     </div>  
+    {% endif %}
     {% endif %}
   </div>
 </section>
