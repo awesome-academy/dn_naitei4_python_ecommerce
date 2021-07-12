@@ -1,17 +1,20 @@
+from django.http import response
+from django.http.response import JsonResponse
 from my_app.settings import EMAIL_HOST_USER
-from ecommerce.forms import ProfileForm, ReviewForm, UserForm
+from ecommerce.forms import CommentForm, ProfileForm, ReviewForm, UserForm
 from django.views import generic
 from django.shortcuts import get_object_or_404, redirect, render
 from django.contrib.auth.forms import UserCreationForm
-from django.contrib.auth.mixins import PermissionRequiredMixin
+from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
 from django.urls import reverse_lazy
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required, permission_required
 from django.db import transaction
+from django.template.loader import render_to_string
 from django.core.mail import send_mail
 from django.core.paginator import Paginator
 from django.utils.translation import gettext_lazy as _
-from .models import Booking, Cart, Category, FavoriteProduct, Order, Product, Review
+from .models import Booking, Cart, Category, Comment, FavoriteProduct, Order, Product, Review
 
 def product_get(request):
     products = Product.objects.all()
@@ -37,16 +40,29 @@ def product_detail(request, pk):
     pd = Booking.objects.select_related('order').filter(product__pk=pk)
     paid = True if pd else False
     review_form = ReviewForm()
-    
+
     context = {
         'product':product,
         'review':review,
         'paid':paid,
-        'review_form':review_form
+        'review_form':review_form,
     }
 
     return render(request,'ecommerce/product_detail.html',context=context)
 
+@login_required
+def review_detail(request, pk):
+    review = Review.objects.filter(pk=pk)
+    comments = Comment.objects.filter(review_id=pk)
+    comment_form = CommentForm()
+
+    context = {
+        'review':review,
+        'comments':comments,
+        'comment_form':comment_form,
+    }
+
+    return render(request,'ecommerce/review_detail.html',context=context)
 
 class SignUpView(generic.CreateView):
     form_class = UserCreationForm
@@ -357,5 +373,34 @@ def review_add(request, pk):
             'review_form': review_form
         }
         return render(request, 'ecommerce/product_detail.html', context=context)
-    
-   
+
+@login_required
+@transaction.atomic   
+def comment_add(request, pk):
+    comment_form = CommentForm()
+    if request.method == "POST" and request.is_ajax():
+        review = Review.objects.get(pk=pk)
+        comment_form = CommentForm(request.POST)
+
+        if comment_form.is_valid():
+            new_comment = comment_form.save(commit=False)
+            new_comment.user = request.user
+            new_comment.review = review
+            new_comment.save()
+
+            context = {
+                "review_id": new_comment.review.id, 
+                "content": new_comment.comment, 
+                "id": new_comment.id, 
+                "user": new_comment.user.username, 
+                "created": new_comment.created, 
+                "status":200
+            }
+            data = {}
+            data['list'] = render_to_string('ecommerce/comment_block.html',context=context, request=request)
+            return JsonResponse(data)
+        else:
+            errors = comment_form.errors.as_json()
+            return JsonResponse({"errors": errors,  "status":400})
+
+    return render(request,'ecommerce/review_detail.html',{"comment_form": comment_form})

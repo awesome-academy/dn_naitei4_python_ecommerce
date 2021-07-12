@@ -1,0 +1,137 @@
+{% extends "base_generic.html" %}
+{% load i18n %}
+{% load static %}
+{% block content %}
+<section id="product-container" class="container my-5">
+  <div class="row">
+    <div class="col">
+      <div class="row">
+        <div class="col-lg-9 col-md-5">
+          <h3 class="h3 mb-8" style="padding-left: 30px; padding-bottom: 20px;">Review detail:</h3>
+        </div>
+      </div>
+      {% for rv in review %}
+        <div class="product-review pb-4">
+          <div class="card p-5">
+            <div class="d-flex justify-content-between">
+                <div class="d-flex align-items-center me-4 pe-2">
+                    <img class ="rounded-circle" width="50" src="\media\profile_pics\avatar.png" alt="User">
+                    <div class="ps-3" style="padding-left: 20px;">
+                        <h6 class="fs-sm mb-0">{{ rv.user.username }}</h6>
+                        <span class="fs-ms text-muted">{{ rv.created }}</span>
+                    </div>
+                </div>
+                <div class="p-2"><a href="#" data-toggle="modal" data-target="#commentModal"><i class="fas fa-reply"></i></a></div>
+                <!-- Modal -->
+                <div class="modal fade" id="commentModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                    <div class="modal-dialog" role="document">
+                        <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="exampleModalLabel">{% trans 'Add comment' %}</h5>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        <div class="modal-body"> 
+                            <form method="POST" class="row padding-top" enctype="multipart/form-data" id="commentForm" data-url-name="{% url 'comment_add' rv.id %}">
+                                {% csrf_token %}
+                                <div class="modal-body">
+                                    {{ comment_form.as_p }}
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary close_modal" data-dismiss="modal">{% trans 'Close' %}</button>
+                                    <input type="submit" value="Submit" class="btn btn-primary">
+                                </div>
+                            </form>
+                        </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% if rv.rate == 5 %}
+            <div style="padding-bottom: 10px;">
+              {% for i in "12345" %}
+              <i class="fas fa-star" style="color: orange;"></i>
+              {% endfor %}
+            </div>
+            {% elif rv.rate == 4 %}
+            <div style="padding-bottom: 10px;">
+              {% for i in "1234" %}
+              <i class="fas fa-star" style="color: orange;"></i>
+              {% endfor %}
+              <i class="fa fa-star-o"></i>
+            </div>
+            {% elif rv.rate == 3 %}
+            <div style="padding-bottom: 10px;">
+              {% for i in "123" %}
+              <i class="fas fa-star" style="color: orange;"></i>
+              {% endfor %}
+              {% for i in "12" %}
+              <i class="fa fa-star-o"></i>
+              {% endfor %}
+            </div>
+            {% elif rv.rate == 2 %}
+            <div style="padding-bottom: 10px;">
+              {% for i in "12" %}
+              <i class="fas fa-star" style="color: orange;"></i>
+              {% endfor %}
+              {% for i in "123" %}
+              <i class="fa fa-star-o"></i>
+              {% endfor %}
+            </div>
+            {% elif rv.rate == 1 %}
+            <div style="padding-bottom: 10px;">
+              <i class="fas fa-star" style="color: orange;"></i>
+              {% for i in "1234" %}
+              <i class="fa fa-star-o"></i>
+              {% endfor %}
+            </div>
+            {% endif %}
+            <h5 class="h5 pb-2">{{ rv.title }}</h3>
+            <p class="fs-md mb-2">
+              {{ rv.content }}
+            </p>
+            <div class="review-row">
+            {% if comments %}
+                {% for cmt in comments %}
+                  <hr class="mt-4 mb-3"/>
+                  <div class="product-review pb-4">
+                    <div class="d-flex justify-content-between">
+                        <div class="d-flex align-items-center me-4 pe-2">
+                            <div style="padding-right: 20px;">
+                                <i class="far fa-comment-dots"></i>
+                            </div>
+                            <img class ="rounded-circle" width="50" src="\media\profile_pics\avatar.png" alt="User">
+                            <div class="ps-3" style="padding-left: 20px;">
+                                <h6 class="fs-sm mb-0">{{ cmt.user.username }}</h6>
+                                <span class="fs-ms text-muted">{{ cmt.created }}</span>
+                            </div>
+                        </div>
+                        <div class="p-2"><i class="fas fa-reply"></i></div>
+                    </div>
+                    
+                    <div class="ps-3" style="padding-left: 105px;">
+                        <p class="fs-md mb-2">
+                            {{ cmt.comment }}
+                        </p>
+                    </div>
+                  </div>
+                {% endfor %}
+            {% else %}
+            </div>
+            <div class="no-row">
+              <hr class="mt-4 mb-3"/>
+              <p class="fs-md mb-2">
+                  There are no comments for this review yet.
+              </p>
+            </div>
+            {% endif%}
+        </div>
+        {% endfor %}
+    </div>
+</section>
+{% endblock %}
+
+{% block jscode %}
+<script src="{% static 'js/review.js' %}" defer></script>
+{% endblock %}
