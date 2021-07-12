@@ -93,3 +93,12 @@ class Review(models.Model):
 
     def __str__(self):
         return f'{self.user.username}, {self.product.product_name}, {self.created}'
+
+class Comment(models.Model):
+    comment = models.TextField(max_length=1000)
+    created = models.DateTimeField(auto_now_add=True)
+    review = models.ForeignKey('Review', on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f'{self.user.username}, {self.review}, {self.created}'
