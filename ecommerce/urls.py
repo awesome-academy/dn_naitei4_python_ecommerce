@@ -20,4 +20,5 @@ urlpatterns = [
     path('order/all/', views.OrderAllListView.as_view(), name='all-order'), 
     path('order/check/<int:pk>', views.check_order_status, name='check-order-status'), 
     path('search', views.product_search, name='product_search'),
+    path('review/add/<int:pk>', views.review_add, name='review_add')
 ]
