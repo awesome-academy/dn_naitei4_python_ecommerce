@@ -22,7 +22,7 @@
                     </div>
                 </div>
                 <div class="p-2"><a href="#" data-toggle="modal" data-target="#commentModal"><i class="fas fa-reply"></i></a></div>
-                <!-- Modal -->
+                <!-- Comment Review Modal -->
                 <div class="modal fade" id="commentModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
                     <div class="modal-dialog" role="document">
                         <div class="modal-content">
@@ -93,30 +93,64 @@
             </p>
             <div class="review-row">
             {% if comments %}
-                {% for cmt in comments %}
-                  <hr class="mt-4 mb-3"/>
-                  <div class="product-review pb-4">
-                    <div class="d-flex justify-content-between">
-                        <div class="d-flex align-items-center me-4 pe-2">
-                            <div style="padding-right: 20px;">
-                                <i class="far fa-comment-dots"></i>
+            {% for cmt in comments %}
+              <hr class="mt-4 mb-3"/>
+              <div class="product-review pb-4" id="{{ cmt.pk }}">
+                <div class="d-flex justify-content-between">
+                    <div class="d-flex align-items-center me-4 pe-2">
+                        <div style="padding-right: 20px;">
+                            <i class="far fa-comment-dots"></i>
+                        </div>
+                        <img class ="rounded-circle" width="50" src="\media\profile_pics\avatar.png" alt="User">
+                        <div class="ps-3" style="padding-left: 20px;">
+                            <h6 class="fs-sm mb-0">{{ cmt.user.username }}</h6>
+                            <span class="fs-ms text-muted">{{ cmt.created }}</span>
+                        </div>
+                    </div>
+                    <div class="comment_wrap">
+                      <div class="p-2"><a href="#" data-toggle="modal" data-target="#reply-comment-{{cmt.pk}}"><i class="fas fa-reply reply-comment"></i></a></div>
+                      <!-- Comment Reply Modal -->
+                      <div class="modal fade" id="reply-comment-{{cmt.pk}}" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                        <div class="modal-dialog" role="document">
+                            <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="exampleModalLabel">{% trans 'Add comment' %}</h5>
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                                </button>
                             </div>
-                            <img class ="rounded-circle" width="50" src="\media\profile_pics\avatar.png" alt="User">
-                            <div class="ps-3" style="padding-left: 20px;">
-                                <h6 class="fs-sm mb-0">{{ cmt.user.username }}</h6>
-                                <span class="fs-ms text-muted">{{ cmt.created }}</span>
+                            <div class="modal-body"> 
+                                <form method="POST" class="row padding-top replyForm" enctype="multipart/form-data" id="replyForm" data-url-name="{% url 'comment_reply' rv.pk cmt.pk %}">
+                                    {% csrf_token %}
+                                    <div class="modal-body">
+                                        {{ comment_form.as_p }}
+                                        <input type="hidden" value="{{cmt.pk}}" class="btn btn-primary ">
+                                    </div>
+                                
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary close_modal" data-dismiss="modal">{% trans 'Close' %}</button>
+                                        <input type="submit" value="Submit" id={{cmt.pk}} class="btn btn-primary submitReplyCmt">
+                                    </div>
+                                </form>
+                            </div>
                             </div>
                         </div>
-                        <div class="p-2"><i class="fas fa-reply"></i></div>
+                      </div>
                     </div>
-                    
-                    <div class="ps-3" style="padding-left: 105px;">
-                        <p class="fs-md mb-2">
-                            {{ cmt.comment }}
-                        </p>
-                    </div>
-                  </div>
-                {% endfor %}
+                </div>
+                
+                <div class="ps-3" style="padding-left: 105px;">
+                    <p class="fs-md mb-2">
+                        {% if cmt.parent_comment %}
+                          <h6>reply to : <a href="#">@{{ cmt.parent_comment.user.username }}</a> : "{{ cmt.parent_comment.comment }}"</h6>
+                          <p>{{ cmt.comment }}</p>
+                        {% else %}
+                          {{ cmt.comment }}
+                        {% endif %}
+                    </p>
+                </div>
+              </div>
+            {% endfor %}
             {% else %}
             </div>
             <div class="no-row">
@@ -134,4 +168,5 @@
 
 {% block jscode %}
 <script src="{% static 'js/review.js' %}" defer></script>
+<script src="{% static 'js/reply.js' %}" defer></script>
 {% endblock %}

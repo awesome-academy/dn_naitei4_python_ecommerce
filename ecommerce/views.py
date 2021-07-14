@@ -404,3 +404,38 @@ def comment_add(request, pk):
             return JsonResponse({"errors": errors,  "status":400})
 
     return render(request,'ecommerce/review_detail.html',{"comment_form": comment_form})
+
+@login_required
+@transaction.atomic   
+def comment_reply(request, review_pk, cmt_pk):
+    comment_form = CommentForm()
+    if request.method == "POST" and request.is_ajax():
+        review = Review.objects.get(pk=review_pk)
+        parent_comment = Comment.objects.get(pk=cmt_pk)
+        comment_form = CommentForm(request.POST)
+
+        if comment_form.is_valid():
+            new_comment = comment_form.save(commit=False)
+            new_comment.user = request.user
+            new_comment.review = review
+            new_comment.parent_comment = parent_comment
+            new_comment.save()
+
+            context = {
+                "review_id": new_comment.review.id, 
+                "content": new_comment.comment, 
+                "id": new_comment.id, 
+                "user": new_comment.user.username, 
+                "reply_user": parent_comment.user.username,
+                "created": new_comment.created, 
+                "reply_comment": parent_comment.comment,
+                "status":200
+            }
+            data = {}
+            data['list'] = render_to_string('ecommerce/comment_reply_block.html',context=context, request=request)
+            return JsonResponse(data)
+        else:
+            errors = comment_form.errors.as_json()
+            return JsonResponse({"errors": errors,  "status":400})
+
+    return render(request,'ecommerce/review_detail.html',{"comment_form": comment_form})
