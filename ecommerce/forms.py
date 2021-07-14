@@ -1,7 +1,8 @@
 from django import forms
 from django.contrib.auth.models import User
+from django.forms import widgets
 from django.utils.translation import gettext_lazy as _
-from .models import Profile, Review
+from .models import Comment, Profile, Review
 
 class UserForm(forms.ModelForm):
     class Meta:
@@ -19,7 +20,7 @@ class ReviewForm(forms.ModelForm):
         data = self.cleaned_data.get("rate", 5)
         if data < 1 or data > 5:
             raise forms.ValidationError("Rate must be within range 1 to 5")
-        if not data.isdigit() :
+        if not str(data).isdigit() :
             raise forms.ValidationError("Rate must be interger")
         return data
 
@@ -43,3 +44,10 @@ class ReviewForm(forms.ModelForm):
         self.fields['content'].widget.attrs.update(size='60')
         self.fields['title'].help_text = '<small class="form-text text-muted">Your review title must be at least 20 characters.</small>'
         self.fields['content'].help_text = '<small class="form-text text-muted">Your review content must be at least 50 characters.</small>'
+
+class CommentForm(forms.ModelForm):
+    class Meta:
+        model = Comment
+        fields = ["comment"]
+        help_texts = { 'comment' : 'Your comment content must be at least 5 characters.'}
+        widgets = { 'comment' : forms.Textarea(attrs={'class':'form-control'}),}
