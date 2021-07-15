@@ -68,4 +68,23 @@
         </tbody>
     </table>
 </div>
+
+<nav aria-label="Product navigation" style="padding-bottom: 40px;">
+    <ul class="pagination justify-content-center">
+        {% if page_obj.has_previous %}
+        <li class="page-item">
+            <a class="page-link" href="?page={{ page_obj.previous_page_number }}">{% trans 'Previous' %}</a>
+        </li>
+        {% endif %}
+        {% for page_num in page_obj.paginator.page_range %}
+        <li class="page-item"><a class="page-link" href="?page={{ page_num }}">{{ page_num }}</a></li>
+        {% endfor %}
+        {% if page_obj.has_next %}
+        <li class="page-item">
+            <a class="page-link" href="?page={{ page_obj.next_page_number }}">{% trans 'Next' %}</a>
+        </li>
+        {% endif %}
+    </ul>
+</nav>
+
 {% endblock %}
