@@ -99,6 +99,7 @@ class Comment(models.Model):
     created = models.DateTimeField(auto_now_add=True)
     review = models.ForeignKey('Review', on_delete=models.CASCADE)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
+    parent_comment = models.ForeignKey('self', on_delete=models.CASCADE, blank=True, null=True, related_name='+')
 
     def __str__(self):
         return f'{self.user.username}, {self.review.title}, {self.comment}'

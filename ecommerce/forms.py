@@ -1,6 +1,5 @@
 from django import forms
 from django.contrib.auth.models import User
-from django.forms import widgets
 from django.utils.translation import gettext_lazy as _
 from .models import Comment, Profile, Review
 
@@ -50,4 +49,6 @@ class CommentForm(forms.ModelForm):
         model = Comment
         fields = ["comment"]
         help_texts = { 'comment' : 'Your comment content must be at least 5 characters.'}
-        widgets = { 'comment' : forms.Textarea(attrs={'class':'form-control'}),}
+        widgets = { 
+            'comment' : forms.Textarea(attrs={'class':'form-control'})
+        }
