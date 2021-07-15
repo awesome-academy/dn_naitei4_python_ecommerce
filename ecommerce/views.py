@@ -1,17 +1,17 @@
 from django.http import response
 from django.http.response import JsonResponse
-from my_app.settings import EMAIL_HOST_USER
+from my_app.settings import EMAIL_HOST_USER, HOST
 from ecommerce.forms import CommentForm, ProfileForm, ReviewForm, UserForm
 from django.views import generic
 from django.shortcuts import get_object_or_404, redirect, render
 from django.contrib.auth.forms import UserCreationForm
-from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
+from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.urls import reverse_lazy
 from django.contrib import messages
+from django.core.mail import EmailMessage
 from django.contrib.auth.decorators import login_required, permission_required
 from django.db import transaction
-from django.template.loader import render_to_string
-from django.core.mail import send_mail
+from django.template.loader import render_to_string, get_template
 from django.core.paginator import Paginator
 from django.utils.translation import gettext_lazy as _
 from .models import Booking, Cart, Category, Comment, FavoriteProduct, Order, Product, Review
@@ -239,8 +239,21 @@ def cart_checkout(request):
 
         if order:
             order.save()
+            context = {
+                'system': "Django website team",
+                'order_id': order.id,
+                'username': order.user.username,
+                'date': order.date,
+                'orders': cart,
+                'total': order.total_price,
+                'host': HOST,
+            }
             messages.add_message(request, messages.INFO, _('Order is waiting for being approved by admin! Please wait the approve message!'))
-            send_mail(f'New order #{order.id} status annoucement',f'New order #{order.id} have been made, please check waiting order.', EMAIL_HOST_USER , [EMAIL_HOST_USER] ,fail_silently=False,)
+            message = get_template('messages/order_success_message.html').render(context)
+            msg = EmailMessage(f'New order #{order.id} have been made, please check waiting order.',message, EMAIL_HOST_USER, [EMAIL_HOST_USER],)
+            msg.content_subtype = "html"  
+            msg.send()
+        
             # Xử lý giảm số hàng của sản phẩm trong kho sau khi order
             for item in cart:
                 order_detail = Booking(order=order, quantity=item.quantity, product=Product.objects.get(id=item.product.pk))
@@ -303,10 +316,29 @@ def check_order_status(request, pk):
     order.status = status
     order.save()
 
+    detail = Booking.objects.filter(order=pk).select_related('product')
+
+    context = {
+        'system': "Django website team",
+        'order_id': order.id,
+        'username': order.user.username,
+        'date': order.date,
+        'orders': detail,
+        'total': order.total_price,
+    }
+
     if status == 'A':
-        send_mail(f'Your order #{pk} status annoucement',f'Your order #{pk} have been accepted, please wait for delivery. Big thanks for your support.', EMAIL_HOST_USER , [order.user.username],fail_silently=False,)
+        messages.add_message(request, messages.INFO, _(f'Order #{pk} have been accepted!'))
+        message = get_template('messages/order_accepted_message.html').render(context)
+        msg = EmailMessage(f'Your order #{pk} have been accepted.',message, EMAIL_HOST_USER,[order.user.username],)
+        msg.content_subtype = "html"  
+        msg.send()
     elif  status == 'R':
-        send_mail(f'Your order #{pk} status annoucement',f'Your order #{pk} have been rejected, please check your order in our page. Big thanks for your support.', EMAIL_HOST_USER , [order.user.username],fail_silently=False,)
+        messages.add_message(request, messages.INFO, _(f'Order #{pk} have been rejected!'))
+        message = get_template('messages/order_rejected_message.html').render(context)
+        msg = EmailMessage(f'Your order #{pk} have been rejected.',message, EMAIL_HOST_USER,[order.user.username],)
+        msg.content_subtype = "html"  
+        msg.send()
     return redirect('/ecommerce/order/all/')
 
 def product_search(request):
