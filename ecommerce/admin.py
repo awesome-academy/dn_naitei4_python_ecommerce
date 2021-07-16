@@ -1,9 +1,10 @@
 from ecommerce.models import Cart, Category, Comment, FavoriteProduct, Order, Product, Profile, Review
 from django.contrib import admin
+from import_export.admin import ImportExportModelAdmin
 
 admin.site.register(Category)
 
-class ProductAdmin(admin.ModelAdmin):
+class ProductAdmin(ImportExportModelAdmin, admin.ModelAdmin):
     list_display = ('product_name','image','display_category','description','publish_date','price','quantity')
     list_filter = ('publish_date',)
 
@@ -12,7 +13,7 @@ class ProductAdmin(admin.ModelAdmin):
     
     display_category.short_description = 'Category'
 
-class OrderAdmin(admin.ModelAdmin):
+class OrderAdmin(ImportExportModelAdmin, admin.ModelAdmin):
     list_display = ('display_user','total_price','date','status')
     list_filter = ('date','status')
     
