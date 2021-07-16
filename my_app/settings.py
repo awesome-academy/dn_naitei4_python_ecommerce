@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     'ecommerce',
     'crispy_forms',
     'mathfilters',
+    'import_export',
 ]
 
 MIDDLEWARE = [
@@ -167,3 +168,5 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS")
 
 HOST = os.environ.get("HOST")
+
+IMPORT_EXPORT_USE_TRANSACTIONS = True
