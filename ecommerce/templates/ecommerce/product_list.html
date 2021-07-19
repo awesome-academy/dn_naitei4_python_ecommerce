@@ -36,27 +36,10 @@
         </form>
     </div>
     <section class="row product_area">
-        <div class=" row pro_area">
+        <div class="pro_area">
         {% include 'ecommerce/favor_block.html' %}
         </div>
     </section>
-    <nav aria-label="Product navigation" style="padding-bottom: 40px;">
-        <ul class="pagination justify-content-center">
-            {% if page_obj.has_previous %}
-            <li class="page-item">
-                <a class="page-link" href="?page={{ page_obj.previous_page_number }}">{% trans 'Previous' %}</a>
-            </li>
-            {% endif %}
-            {% for page_num in page_obj.paginator.page_range %}
-            <li class="page-item"><a class="page-link" href="?page={{ page_num }}">{{ page_num }}</a></li>
-            {% endfor %}
-            {% if page_obj.has_next %}
-            <li class="page-item">
-                <a class="page-link" href="?page={{ page_obj.next_page_number }}">{% trans 'Next' %}</a>
-            </li>
-            {% endif %}
-        </ul>
-    </nav>
 </main>
 <div style="background-color: rgba(200, 196, 201, 0.487); padding-top: 40px; padding-bottom: 100px;">
     <section class="separator-top">

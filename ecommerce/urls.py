@@ -24,5 +24,7 @@ urlpatterns = [
     path('review/detail/<int:pk>', views.review_detail, name='review_detail'),
     path('comment/add/<int:pk>', views.comment_add, name='comment_add'),
     path('review/<int:review_pk>/comment/reply/<int:cmt_pk>', views.comment_reply, name='comment_reply'),
-    path('report', views.report, name='report')
+    path('report', views.report, name='report'),
+    path('order/all/filter-or-export', views.filter_or_export, name='filter_or_export'),
+    path('product/upload',views.simple_upload, name='simple_upload')
 ]

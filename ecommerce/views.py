@@ -1,4 +1,7 @@
 import datetime
+import xlwt
+from ecommerce.resources import ProductResource
+from tablib import Dataset
 from django.db.models.aggregates import Max
 from django.http.response import JsonResponse
 from my_app.settings import EMAIL_HOST_USER, HOST
@@ -6,9 +9,10 @@ from ecommerce.forms import CartForm, CommentForm, ProfileForm, ReviewForm, User
 from django.views import generic
 from django.shortcuts import get_object_or_404, redirect, render
 from django.contrib.auth.forms import UserCreationForm
-from django.template.defaultfilters import date, first
+from django.template.defaultfilters import date
 from django.urls import reverse_lazy
 from django.contrib import messages
+from django.http import HttpResponse
 from django.db.models import Sum
 from django.core.mail import EmailMessage
 from django.contrib.auth.decorators import login_required, permission_required
@@ -25,14 +29,11 @@ def product_get(request):
         favorite_product_ids = FavoriteProduct.objects.filter(user=request.user).values_list('product_id', flat=True)
     else:
         favorite_product_ids=[]
-    paginator = Paginator(products, 8)
-    page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
 
     context = {
         'category_list':categories,
         'favorite_product_ids':favorite_product_ids,
-        "page_obj":page_obj
+        "page_obj":products
     }
     return render(request, 'ecommerce/product_list.html',context=context)
 
@@ -105,7 +106,7 @@ def get_profile(request):
     context = {
         'user_form': user_form,
         'profile_form': profile_form,
-        'favorites':favorites
+        'favorites':favorites,
     }
     return render(request, 'ecommerce/profile.html', context=context)
 
@@ -317,12 +318,11 @@ def report(request):
         best['month'], best['total_price'] = max(month_price, key=lambda i: i[1])
         best['month_name'] = date(datetime.date(datetime.datetime.now().year, month=best['month'], day=1), 'F')
     
-    if 'filter' in request.GET:
-        year = request.GET.get("filter", datetime.datetime.now().year)
-        first = Order.objects.filter(date__quarter=1,date__year=year).aggregate(Sum('total_price')).get('total_price__sum', 0)
-        second = Order.objects.filter(date__quarter=2,date__year=year).aggregate(Sum('total_price')).get('total_price__sum', 0)
-        third = Order.objects.filter(date__quarter=3,date__year=year).aggregate(Sum('total_price')).get('total_price__sum', 0)
-        forth = Order.objects.filter(date__quarter=4,date__year=year).aggregate(Sum('total_price')).get('total_price__sum', 0)
+    year = request.GET.get("filter", datetime.datetime.now().year)
+    first = Order.objects.filter(date__quarter=1,date__year=year).aggregate(Sum('total_price')).get('total_price__sum', 0)
+    second = Order.objects.filter(date__quarter=2,date__year=year).aggregate(Sum('total_price')).get('total_price__sum', 0)
+    third = Order.objects.filter(date__quarter=3,date__year=year).aggregate(Sum('total_price')).get('total_price__sum', 0)
+    forth = Order.objects.filter(date__quarter=4,date__year=year).aggregate(Sum('total_price')).get('total_price__sum', 0)
 
     years = Order.objects.dates('date', 'year')
 
@@ -447,9 +447,6 @@ def add_favorite_product(request, pk):
         in_wishlist = FavoriteProduct.objects.filter(user=request.user, product__pk=pk).first()
         favorite_product_ids = FavoriteProduct.objects.filter(user=request.user).values_list('product_id', flat=True)
         products = Product.objects.all()
-        paginator = Paginator(products, 8)
-        page_number = request.GET.get('page')
-        page_obj = paginator.get_page(page_number)
 
         if in_wishlist:
             in_wishlist.delete()
@@ -461,7 +458,7 @@ def add_favorite_product(request, pk):
         
         context = {
             "favorite_product_ids":favorite_product_ids,
-            "page_obj":page_obj,
+            "page_obj":products,
             "status":200
         }
 
@@ -558,3 +555,85 @@ def comment_reply(request, review_pk, cmt_pk):
             return JsonResponse({"errors": errors,  "status":400})
 
     return render(request,'ecommerce/review_detail.html',{"comment_form": comment_form})
+
+@login_required
+def filter_or_export(request):
+    if request.method == 'POST':
+        if 'filter' in request.POST:
+            status = request.POST['export']
+            if status != 'All':
+                orders = Order.objects.filter(status=status).order_by('-status','-date')
+            else:
+                orders = Order.objects.order_by('-status','-date')
+            paginator = Paginator(orders, 8)
+            page_number = request.GET.get('page')
+            page_obj = paginator.get_page(page_number)
+            
+            context = {
+                "order_list":orders,
+                "page_obj":page_obj,
+                "status":status
+            }
+
+            return render(request, 'ecommerce/order_list_all.html',context=context)
+
+        elif 'export-file' in request.POST:
+            status = request.POST['export']
+            if status != 'All':
+                rows = Order.objects.filter(status=status).values_list('id', 'user', 'total_price', 'shipping_address', 'phone_number', 'total_price', 'date', 'status')
+            else:
+                rows = Order.objects.all().values_list('id', 'user', 'total_price', 'shipping_address', 'phone_number', 'total_price', 'date', 'status')
+            
+            response = HttpResponse(content_type='application/ms-excel')
+
+            # Name file
+            if status == 'All':
+                response['Content-Disposition'] = 'attachment; filename="all-orders.xls"'
+            elif status == 'A':
+                response['Content-Disposition'] = 'attachment; filename="all-approved-orders.xls"'
+            elif status == 'W':
+                response['Content-Disposition'] = 'attachment; filename="all-waiting-orders.xls"'
+            elif status == 'R':
+                response['Content-Disposition'] = 'attachment; filename="all-rejected-orders.xls"'
+
+            wb = xlwt.Workbook(encoding='utf-8')
+            ws = wb.add_sheet('Orders')
+
+            # Sheet header, first row
+            row_num = 0
+
+            font_style = xlwt.XFStyle()
+            font_style.font.bold = True
+
+            columns = ['Order_ID', 'User', 'Total price', 'Shipping address', 'Phone number', 'Total price', 'Date', 'Status']
+
+            for col_num in range(len(columns)):
+                ws.write(row_num, col_num, columns[col_num], font_style)
+
+            # Sheet body, remaining rows
+            font_style = xlwt.XFStyle()
+
+            for row in rows:
+                row_num += 1
+                for col_num in range(len(row)):
+                    ws.write(row_num, col_num, row[col_num], font_style)
+
+            wb.save(response)
+            return response
+
+def simple_upload(request):
+    if request.method == 'POST':
+        product_resource = ProductResource()
+        dataset = Dataset()
+        new_products = request.FILES['myfile']
+        
+        if new_products.name.split('.')[-1] in ['xls']:
+            imported_data = dataset.load(new_products.read(),format='xls')
+            for data in imported_data:
+                value = Product.objects.create(id=data[0],product_name=data[1],image=data[2],category_id=data[3],description=data[4],price=data[5],quantity=data[6])
+                value.save()       
+                messages.success(request, _('File is imported sucessfully.'))
+                return redirect('get-profile')
+        else:
+            messages.error(request, _('File is not XLS, please input right excel format form.'))
+            return redirect('get-profile')
