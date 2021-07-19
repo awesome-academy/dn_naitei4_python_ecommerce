@@ -17,11 +17,12 @@ urlpatterns = [
     path('order/', views.order_get, name='order_get'),
     path('order/remove/<int:pk>', views.order_remove, name='order_remove'),
     path('order/detail/<int:pk>', views.order_detail, name='order_detail'),
-    path('order/all/', views.OrderAllListView.as_view(), name='all-order'), 
+    path('order/all/', views.order_all_get, name='all-order'), 
     path('order/check/<int:pk>', views.check_order_status, name='check-order-status'), 
     path('search', views.product_search, name='product_search'),
     path('review/add/<int:pk>', views.review_add, name='review_add'),
     path('review/detail/<int:pk>', views.review_detail, name='review_detail'),
     path('comment/add/<int:pk>', views.comment_add, name='comment_add'),
     path('review/<int:review_pk>/comment/reply/<int:cmt_pk>', views.comment_reply, name='comment_reply'),
+    path('report', views.report, name='report')
 ]

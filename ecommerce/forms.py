@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib.auth.models import User
 from django.utils.translation import gettext_lazy as _
-from .models import Comment, Profile, Review
+from .models import Cart, Comment, Profile, Review
 
 class UserForm(forms.ModelForm):
     class Meta:
@@ -51,4 +51,12 @@ class CommentForm(forms.ModelForm):
         help_texts = { 'comment' : 'Your comment content must be at least 5 characters.'}
         widgets = { 
             'comment' : forms.Textarea(attrs={'class':'form-control'})
+        }
+
+class CartForm(forms.ModelForm):
+    class Meta:
+        model = Cart
+        fields = ["quantity"]
+        widgets = { 
+            'quantity' : forms.NumberInput(attrs={'class':'form-control'})
         }

@@ -1,5 +1,6 @@
 from django.contrib.auth.models import User
 from django.db import models
+from django.db.models.aggregates import Sum
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 from django.dispatch import receiver
@@ -27,6 +28,9 @@ class Product(models.Model):
     def get_absolute_url(self):
         return reverse('product-detail', args=[str(self.id)])
 
+    def get_total_sales(self):
+        return Booking.objects.filter(product=self.id).aggregate(Sum('quantity')).get('quantity__sum', 0)
+
 class Order(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
     total_price = models.FloatField(blank=True, null= True, default=0)
@@ -44,6 +48,7 @@ class Order(models.Model):
     class Meta:
         ordering = ['date']
         permissions = (("can_mark_returned", "Set order as returned"),)
+        verbose_name = "order"
 
     def __str__(self):
         return f'{self.id} ({self.user.username})'
@@ -60,6 +65,9 @@ class Booking(models.Model):
     order = models.ForeignKey('Order', on_delete=models.CASCADE, null=True)
     price = models.IntegerField(default=0)
     quantity = models.IntegerField(default=1)
+
+    def __str__(self):
+        return f'{self.quantity}'
 
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')

@@ -1,13 +1,15 @@
-from django.http import response
+import datetime
+from django.db.models.aggregates import Max
 from django.http.response import JsonResponse
 from my_app.settings import EMAIL_HOST_USER, HOST
-from ecommerce.forms import CommentForm, ProfileForm, ReviewForm, UserForm
+from ecommerce.forms import CartForm, CommentForm, ProfileForm, ReviewForm, UserForm
 from django.views import generic
 from django.shortcuts import get_object_or_404, redirect, render
 from django.contrib.auth.forms import UserCreationForm
-from django.contrib.auth.mixins import PermissionRequiredMixin
+from django.template.defaultfilters import date, first
 from django.urls import reverse_lazy
 from django.contrib import messages
+from django.db.models import Sum
 from django.core.mail import EmailMessage
 from django.contrib.auth.decorators import login_required, permission_required
 from django.db import transaction
@@ -40,12 +42,14 @@ def product_detail(request, pk):
     pd = Booking.objects.select_related('order').filter(product__pk=pk)
     paid = True if pd else False
     review_form = ReviewForm()
+    cart_form = CartForm(initial={'quantity': 0})
 
     context = {
         'product':product,
         'review':review,
         'paid':paid,
         'review_form':review_form,
+        'cart_form':cart_form
     }
 
     return render(request,'ecommerce/product_detail.html',context=context)
@@ -108,10 +112,12 @@ def get_profile(request):
 @login_required
 @transaction.atomic
 def cart_add(request, pk):
-    if request.method == 'POST':
-        quantity = request.POST['quantity']
+    cart_form = CartForm(initial={'quantity': 0})
+
+    if request.method == "POST" and request.is_ajax():
+        cart_form = CartForm(request.POST)
     else:
-        quantity = 0
+        cart_form = 0
 
     product_get = Product.objects.filter(pk=pk).first()
     if product_get:
@@ -125,21 +131,25 @@ def cart_add(request, pk):
     else:
         cart_quantity = 0
     
-    if int(quantity) > 0 :
-        if int(quantity) + cart_quantity > product_stock:
-            messages.add_message(request, messages.INFO, _("Out of stock limit"))
-        else:
-            if in_cart:
-                in_cart.quantity = int(quantity) + cart_quantity
-                in_cart.save()
+    if cart_form.is_valid():
+        if int(cart_form.data["quantity"]) > 0 :
+            if int(cart_form.data["quantity"]) + cart_quantity > product_stock:
+                messages.add_message(request, messages.INFO, _("Out of stock limit"))
             else:
-                product_new = Cart(user=request.user, product=Product.objects.get(pk=pk), quantity=quantity)
-                product_new.save()
-            messages.add_message(request, messages.INFO, _('You added a product to your cart'))
+                if in_cart:
+                    in_cart.quantity = int(cart_form.data["quantity"]) + cart_quantity
+                    in_cart.save()
+                else:
+                    product_new = cart_form.save(commit=False)
+                    product_new = Cart(user=request.user, product=Product.objects.get(pk=pk), quantity=int(cart_form.data["quantity"]))
+                    product_new.save()
+                messages.add_message(request, messages.INFO, _('You added a product to your cart'))
+                return JsonResponse({"status":200})
+        else:
+            messages.add_message(request, messages.INFO, _('Please add product quantity more than 0'))
     else:
-        messages.add_message(request, messages.INFO, _('Please add product quantity more than 0'))
-    
-    return redirect(f'/ecommerce/product/{pk}')
+        errors = cart_form.errors.as_json()
+        return JsonResponse({"errors": errors,  "status":400})
 
 @login_required
 def cart_get(request):
@@ -295,14 +305,74 @@ def order_detail(request, pk):
 
     return render(request, 'ecommerce/order_detail.html', {'id': pk, 'status': order.status, 'detail': detail, 'total': order.total_price})
 
-class OrderAllListView(PermissionRequiredMixin, generic.ListView):
-    model = Order
-    permission_required = 'ecommerce.can_mark_returned'
-    template_name = 'ecommerce/order_list_all.html'
-    paginate_by = 10
+@login_required
+def report(request):
+    total_orders = Order.objects.all().count()
+    total_sales = Order.objects.aggregate(Sum('total_price')).get('total_price__sum', 0)
+    max_sales = Order.objects.aggregate(Max('total_price')).get('total_price__max', 0)
+    best = {}
+    month_price = Order.objects.values_list('date__month').annotate(total=Sum('total_price'))
 
-    def get_queryset(self):
-        return Order.objects.order_by('-status','-date')
+    if month_price:
+        best['month'], best['total_price'] = max(month_price, key=lambda i: i[1])
+        best['month_name'] = date(datetime.date(datetime.datetime.now().year, month=best['month'], day=1), 'F')
+    
+    if 'filter' in request.GET:
+        year = request.GET.get("filter", datetime.datetime.now().year)
+        first = Order.objects.filter(date__quarter=1,date__year=year).aggregate(Sum('total_price')).get('total_price__sum', 0)
+        second = Order.objects.filter(date__quarter=2,date__year=year).aggregate(Sum('total_price')).get('total_price__sum', 0)
+        third = Order.objects.filter(date__quarter=3,date__year=year).aggregate(Sum('total_price')).get('total_price__sum', 0)
+        forth = Order.objects.filter(date__quarter=4,date__year=year).aggregate(Sum('total_price')).get('total_price__sum', 0)
+
+    years = Order.objects.dates('date', 'year')
+
+    products = Product.objects.all()
+
+    total =  Booking.objects.values_list('product', flat=True).distinct()
+
+    if 'product_name' in request.GET:
+        product_name = request.GET["product_name"]
+        products = products.filter(product_name__icontains=product_name)
+    
+    if 'start' and 'end' in request.GET:
+        start = request.GET["start"]
+        end = request.GET["end"]
+        if start and end:
+            b = Booking.objects.filter(order__date__range=[start,end]).values('product').distinct()
+            products = Product.objects.filter(pk__in=b)
+
+    context = {
+        "total_orders":total_orders,
+        "total_sales":total_sales,
+        "max_sales":max_sales,
+        "best":best,
+        "month":month_price,
+        "first":first,
+        "second":second,
+        "third":third,
+        "forth":forth,
+        'years':years,
+        'products':products,
+        'total':total,
+    }
+
+    return render(request, 'ecommerce/report.html',context=context)
+
+
+@login_required
+@permission_required('ecommerce.can_mark_returned', raise_exception=True)
+def order_all_get(request):
+    orders = Order.objects.order_by('-status','-date')
+    paginator = Paginator(orders, 8)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
+    context = {
+        "order_list":orders,
+        "page_obj":page_obj,
+    }
+
+    return render(request, 'ecommerce/order_list_all.html',context=context)
 
 @login_required
 @permission_required('ecommerce.can_mark_returned', raise_exception=True)
@@ -373,18 +443,35 @@ def product_search(request):
 
 @login_required
 def add_favorite_product(request, pk):
-    in_wishlist = FavoriteProduct.objects.filter(user=request.user, product__pk=pk).first()
+    if request.is_ajax():
+        in_wishlist = FavoriteProduct.objects.filter(user=request.user, product__pk=pk).first()
+        favorite_product_ids = FavoriteProduct.objects.filter(user=request.user).values_list('product_id', flat=True)
+        products = Product.objects.all()
+        paginator = Paginator(products, 8)
+        page_number = request.GET.get('page')
+        page_obj = paginator.get_page(page_number)
 
-    if in_wishlist:
-        in_wishlist.delete()
-        messages.add_message(request, messages.INFO, _('You deleted a product from your wishlist'))
+        if in_wishlist:
+            in_wishlist.delete()
+            messages.add_message(request, messages.INFO, _('You deleted a product from your wishlist'))
+        else:
+            new_obj = FavoriteProduct.objects.create(user=request.user, product_id=pk)        
+            new_obj.save()
+            messages.add_message(request, messages.INFO, _('You added a product to your wishlist'))
+        
+        context = {
+            "favorite_product_ids":favorite_product_ids,
+            "page_obj":page_obj,
+            "status":200
+        }
 
-    else:
-        new_obj = FavoriteProduct.objects.create(user=request.user, product_id=pk)        
-        new_obj.save()
-        messages.add_message(request, messages.INFO, _('You added a product to your wishlist'))
+        data = {}
+        data['list'] = render_to_string('ecommerce/favor_block.html',context=context, request=request)
+        return JsonResponse(data)
+    
+    favorite_product_ids = FavoriteProduct.objects.filter(user=request.user).values_list('product_id', flat=True)
 
-    return redirect('/ecommerce/')
+    return render(request,'ecommerce/product_list.html',{'favorite_product_ids':favorite_product_ids})
 
 @login_required
 @transaction.atomic
