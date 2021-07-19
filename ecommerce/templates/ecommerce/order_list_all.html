@@ -20,7 +20,7 @@
         </thead> 
         <tbody>
         {% if order_list.exists %}
-            {% for order in order_list %}
+            {% for order in page_obj %}
                 <tr>
                     <td><p>#{{ order.id }}</p></td>
                     <td><p>{{ order.user.username }}</p></td>

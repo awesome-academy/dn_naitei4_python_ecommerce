@@ -15,17 +15,18 @@
           <p class="card-text my-5">{{ product.description }}</p>
           <p>{% trans 'Quantity : ' %}{{ product.quantity }}</p>
           <div class="d-flex align-items-center">
-            <h5 class="card-text font-weight-bold mr-4">{% trans 'Price : ' %}{{ object.price|floatformat:2 }} $</h5>
+            <h5 class="card-text font-weight-bold mr-4">{% trans 'Price : ' %}{{ product.price|floatformat:2 }} $</h5>
           </div>
           <div class="card-body"></div>
           <div id="popover-content">
             {% if user.is_authenticated %}
-            <form method="POST" action="{% url 'cart_add' product.pk %}">
+            <form method="POST" class="cartForm" enctype="multipart/form-data" id="cartForm" data-url-name="{% url 'cart_add' product.pk %}">
               {% csrf_token %}
-              <input type="number" class="border-floating" name="quantity" min="0" max="{{product.quantity}}"
-                style="width: 65px; height: 35px;" value="0" required>
+              <div style="width:8ch;">
+                {{ cart_form.as_p }}
+              </div>
               <div style="padding-left: -10px; padding-top: 25px;">
-                <button class="btn btn-info"><i class="fas fa-shopping-cart mr-2"></i>{% trans 'Add to cart' %}</button>
+                <button type="submit" class="btn btn-info"><i class="fas fa-shopping-cart mr-2"></i>{% trans 'Add to cart' %}</button>
               </div>
             </form>
             {% else %}
@@ -157,4 +158,8 @@
     {% endif %}
   </div>
 </section>
+{% endblock %}
+
+{% block jscode %}
+<script src="{% static 'js/cart.js' %}" defer></script>
 {% endblock %}
