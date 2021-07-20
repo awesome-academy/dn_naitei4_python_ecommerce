@@ -1,8 +1,9 @@
+from ecommerce.models import Product
 from django.http import response
 from django.test import TestCase
 from django.contrib.auth.models import Permission, User
 from django.urls.base import reverse
-from ecommerce.tests.factories import CartFactory, OrderFactory, ProductFactory, UserFactory
+from ecommerce.tests.factories import CartFactory, CommentFactory, OrderFactory, ProductFactory, ReviewFactory, UserFactory
 
 class CheckOrderAllListViewTest(TestCase):
     def setUp(self):
@@ -313,3 +314,86 @@ class ProfileUpdateViewTest(TestCase):
                                      'last_name': last_name,
                                      'email': email})
         self.assertEqual(response.status_code, 200)
+
+class ReviewAddViewTest(TestCase):
+    def setUp(self):
+        test_user = User.objects.create_user(username='testuser', password='1X<ISRUkw+tuK')
+        test_user.save()
+
+        self.test_product = ProductFactory()
+        self.test_review = ReviewFactory()
+
+    def test_view_url_exists_at_desired_location(self):
+        self.client.login(username = 'testuser', password = '1X<ISRUkw+tuK')
+        response = self.client.get(reverse('review_add', kwargs={'pk': self.test_product.pk}))
+        self.assertEqual(response.status_code, 302)
+           
+    def test_view_url_accessible_by_name(self):
+        self.client.login(username = 'testuser', password = '1X<ISRUkw+tuK')
+        response = self.client.get(reverse('review_add', kwargs={'pk': self.test_product.pk}))
+        self.assertEqual(response.status_code, 302)
+    
+    def test_redirect_if_not_have_pk(self):
+        self.client.login(username = 'testuser', password = '1X<ISRUkw+tuK')
+        response = self.client.get(reverse('review_add'))
+        self.assertEqual(response.status_code, 404)
+
+    def test_redirect_if_not_logged_in(self):
+        response = self.client.get(reverse('review_add', kwargs={'pk': self.test_product.pk}))
+        self.assertEqual(response.status_code, 404)
+    
+    def test_uses_correct_template(self):
+        self.client.login(username = 'testuser', password = '1X<ISRUkw+tuK')
+        response = self.client.get(reverse('review_add', kwargs={'pk': self.test_product.pk}))
+        self.assertEqual(response.status_code, 200)
+
+        # Check we used correct template
+        self.assertTemplateUsed(response, 'ecommerce/product_detail.html')
+
+    def test_post_review_success(self):
+        self.client.login(username = 'testuser', password = '1X<ISRUkw+tuK')
+        response = self.client.post(reverse('review_add', kwargs={'pk': self.test_product.pk}), data={"title": self.test_review.title, "content":self.test_review.content, "rate":self.test_review.rate})
+        new_review = self.client.get(reverse('product-detail', kwargs={'pk': self.test_product.pk}))
+        self.assertEqual(str(new_review.context['title']), self.test_review.title)
+        self.assertEqual(str(new_review.context['content']), self.test_review.content)
+
+class CommentAddViewTest(TestCase):
+    def setUp(self):
+        test_user = User.objects.create_user(username='testuser', password='1X<ISRUkw+tuK')
+        test_user.save()
+
+        self.test_review = ReviewFactory()
+        self.test_comment = CommentFactory()
+
+    def test_view_url_exists_at_desired_location(self):
+        self.client.login(username = 'testuser', password = '1X<ISRUkw+tuK')
+        response = self.client.get(reverse('comment_add', kwargs={'pk': self.test_review.pk}))
+        self.assertEqual(response.status_code, 302)
+           
+    def test_view_url_accessible_by_name(self):
+        self.client.login(username = 'testuser', password = '1X<ISRUkw+tuK')
+        response = self.client.get(reverse('comment_add', kwargs={'pk': self.test_review.pk}))
+        self.assertEqual(response.status_code, 302)
+    
+    def test_redirect_if_not_have_pk(self):
+        self.client.login(username = 'testuser', password = '1X<ISRUkw+tuK')
+        response = self.client.get(reverse('comment_add'))
+        self.assertEqual(response.status_code, 404)
+
+    def test_redirect_if_not_logged_in(self):
+        response = self.client.get(reverse('comment_add', kwargs={'pk': self.test_review.pk}))
+        self.assertEqual(response.status_code, 404)
+    
+    def test_uses_correct_template(self):
+        self.client.login(username = 'testuser', password = '1X<ISRUkw+tuK')
+        response = self.client.get(reverse('comment_add', kwargs={'pk': self.test_review.pk}))
+        self.assertEqual(response.status_code, 200)
+
+        # Check we used correct template
+        self.assertTemplateUsed(response, 'ecommerce/review_detail.html')
+
+    def test_post_review_success(self):
+        self.client.login(username = 'testuser', password = '1X<ISRUkw+tuK')
+        response = self.client.post(reverse('comment_add', kwargs={'pk': self.test_review.pk}), data={"comment": self.test_comment.comment})
+        new_comment = self.client.get(reverse('review-detail', kwargs={'pk': self.test_review.pk}))
+        self.assertEqual(str(new_comment.context['comment']), self.test_comment.comment)
