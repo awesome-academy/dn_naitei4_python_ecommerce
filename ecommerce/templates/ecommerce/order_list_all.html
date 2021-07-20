@@ -3,7 +3,23 @@
 {% load i18n %}
 {% block content %}
 <div class="container my-4">
-    <h2 class="text-center my-4">{% trans 'All Orders' %}</h2>
+    <h2 class="text-center my-2">{% trans 'All Orders' %}</h2>
+    <div class="my-3 py-3 d-block w-100" style="padding-left: 300px;">
+        <form method="POST" id="advanced-filter" class="form-inline my-2 my-lg-0" action="{% url 'filter_or_export' %}">
+            {% csrf_token %}
+            <div class="form-group text-light mr-2 p-2 rounded rounded-lg">
+                <label for="category_name" class="font-weight-bold mx-sm-2"><span class="text-dark">{% trans 'Filter by status: ' %}</span></label>
+                <select id="export" name="export" class="form-control">
+                    <option {% if status == 'All' %} selected {%endif%} value="All">{% trans 'All' %}</option>
+                    <option {% if status == 'W' %} selected {%endif%} value="W">{% trans 'Waiting' %}</option>
+                    <option {% if status == 'A' %} selected {%endif%} value="A">{% trans 'Approved' %}</option>
+                    <option {% if status == 'R' %} selected {%endif%} value="R">{% trans 'Rejected' %}</option>
+                </select>
+            </div>
+            <button class="btn btn-warning m-sm-2" type="submit" name="filter"><i class="fas fa-filter fa-fw"></i>{% trans 'Apply' %}</button>
+            <button class="btn btn-primary m-sm-2" type="submit" name="export-file">{% trans 'Export file' %}</button>
+        </form>
+    </div>
     <table class="table">
         <thead>
             <tr>
@@ -42,18 +58,9 @@
                         <form method="POST" action="{% url 'check-order-status' order.id %}">
                             {% csrf_token %}
                             <select id="status" name="status" style="width: 95px; height: 35px;">
-                                <option value="" selected disabled hidden>
-                                {% if order.status == 'W' %}
-                                Waiting
-                                {% elif order.status == 'A'%}
-                                Approved
-                                {% else %}
-                                Rejected
-                                {% endif %}
-                                </option>
-                                <option value="W">Waiting</option>
-                                <option value="A">Approved</option>
-                                <option value="R">Rejected</option>
+                                <option {% if status == 'W' %} selected {%endif%} value="W">{% trans 'Waiting' %}</option>
+                                <option {% if status == 'A' %} selected {%endif%} value="A">{% trans 'Approved' %}</option>
+                                <option {% if status == 'R' %} selected {%endif%} value="R">{% trans 'Rejected' %}</option>
                             </select>
                             <button class="btn btn-success float-right text-center" style="width: 95px; height: 35px;">{% trans 'Confirm' %}</button>
                         </form>

@@ -21,10 +21,25 @@
                     <p>{{ user.profile.birthday }}</p>
                     <p class="text-muted mb-0" style="font-size: 12px">{% trans 'Address:' %}</p>
                     <p>{{ user.profile.address }}</p>
+                    {% if user.is_staff %}
+                    <p class="text-muted mb-0" style="font-size: 12px">{% trans 'Role:' %}</p>
+                    <p>Manager</p>
+                    {% endif %}
                     <div class="text-right">
                         <button type="button" class="btn btn-outline-primary btn-sm btn-block " data-toggle="modal" data-target="#profileModal">{% trans 'Edit Profile' %}</button>
                     </div>
                 </div>
+                {% if user.is_staff %}
+                <hr>
+                <h6 class="card-title font-bold text-center">{% trans 'Import excel file of products' %}</h4>
+                <form method="POST" enctype="multipart/form-data" action="{% url 'simple_upload' %}">
+                    {% csrf_token %}
+                    <input type="file" name="myfile">
+                    <div class="text-right my-2">
+                        <button type="submit" class="btn btn-outline-success btn-sm btn-block">{% trans 'Import Product' %}</button>
+                    </div>
+                  </form>
+                {% endif %}
             </div>
         </div>
         <div class="col-sm-12 col-md-12 col-lg-9 pb-4">
