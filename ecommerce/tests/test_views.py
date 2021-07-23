@@ -1,9 +1,8 @@
-from ecommerce.models import Product
-from django.http import response
 from django.test import TestCase
 from django.contrib.auth.models import Permission, User
 from django.urls.base import reverse
-from ecommerce.tests.factories import CartFactory, CommentFactory, OrderFactory, ProductFactory, ReviewFactory, UserFactory
+from .test_setup import TestSetUp
+from ecommerce.tests.factories import CartFactory, CommentFactory, OrderFactory, ProductFactory, ReviewFactory
 
 class CheckOrderAllListViewTest(TestCase):
     def setUp(self):
@@ -397,3 +396,23 @@ class CommentAddViewTest(TestCase):
         response = self.client.post(reverse('comment_add', kwargs={'pk': self.test_review.pk}), data={"comment": self.test_comment.comment})
         new_comment = self.client.get(reverse('review-detail', kwargs={'pk': self.test_review.pk}))
         self.assertEqual(str(new_comment.context['comment']), self.test_comment.comment)
+
+class TestProductAPI(TestSetUp):
+    def test_list_success(self):
+        response = self.client.get(self.product_url)
+        self.assertEqual(response.status_code, 200)
+
+    def test_create_successful(self):
+        response = self.client.post(self.product_url, self.product_data, format='json')
+        res_data = response.data
+        self.assertEqual(res_data['product_name'], self.product_data['product_name'])
+        self.assertEqual(res_data['description'], self.product_data['description'])
+        self.assertEqual(res_data['price'], self.product_data['price'])
+        self.assertEqual(res_data['quantity'], self.product_data['quantity'])
+        self.assertEqual(response.status_code, 201)
+
+    def test_create_invalid_data(self):
+        invalid_data = self.product_data
+        invalid_data['product_name'] = ''
+        response = self.client.post(self.product_url, invalid_data, format='json')
+        self.assertEqual(response.status_code, 400)

@@ -26,5 +26,5 @@ urlpatterns = [
     path('review/<int:review_pk>/comment/reply/<int:cmt_pk>', views.comment_reply, name='comment_reply'),
     path('report', views.report, name='report'),
     path('order/all/filter-or-export', views.filter_or_export, name='filter_or_export'),
-    path('product/upload',views.simple_upload, name='simple_upload')
+    path('product/upload',views.simple_upload, name='simple_upload'),
 ]
