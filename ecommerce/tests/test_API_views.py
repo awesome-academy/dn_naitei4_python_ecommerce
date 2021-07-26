@@ -19,3 +19,21 @@ class TestProductAPI(TestSetUp):
         invalid_data['product_name'] = ''
         response = self.client.post(self.product_url, invalid_data, format='json')
         self.assertEqual(response.status_code, 400)
+
+class TestCheckoutAPI(TestSetUp):
+    def test_get_cart_in_checkout_with_unauth(self):
+        self.client.force_authenticate(user=None)
+        response = self.client.get(self.checkout_url)
+        self.assertEqual(response.status_code, 403)
+
+    def test_get_cart_in_checkout_successful_with_auth(self):
+        response = self.client.get(self.checkout_url)
+        self.assertEqual(response.status_code, 200)
+
+    def test_post_order_information_null(self):
+        response = self.client.post(self.checkout_url)
+        self.assertEqual(response.status_code, 404)
+
+    def test_post_order_information_successfully(self):
+        response = self.client.post(self.checkout_url, self.order_data, format='json')
+        self.assertEqual(response.status_code, 201)

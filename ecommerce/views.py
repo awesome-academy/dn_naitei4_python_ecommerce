@@ -1,5 +1,5 @@
 import datetime
-from ecommerce.serializers import ProductSerializer
+from ecommerce.serializers import CartSerializer, OrderSerializer, ProductSerializer
 import xlwt
 from ecommerce.resources import ProductResource
 from tablib import Dataset
@@ -21,8 +21,13 @@ from django.db import transaction
 from django.template.loader import render_to_string, get_template
 from django.core.paginator import Paginator
 from django.utils.translation import gettext_lazy as _
-from rest_framework import viewsets, pagination
+from rest_framework.views import APIView
+from rest_framework import viewsets, pagination, status
+from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
 from django.shortcuts import render
+from rest_framework import generics
+
 from .models import Booking, Cart, Category, Comment, FavoriteProduct, Order, Product, Review
 
 class CustomPagination(pagination.PageNumberPagination):
@@ -35,6 +40,82 @@ class APIProductViewSet(viewsets.ModelViewSet):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
     pagination_class = CustomPagination
+
+class OrderList(generics.ListCreateAPIView):
+    queryset = Order.objects.all()
+    serializer_class = OrderSerializer
+
+class APICheckoutView(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request):
+        user = request.user
+        queryset = Cart.objects.filter(user=user)
+        serializer = CartSerializer(queryset, many=True)
+        return Response(serializer.data)
+
+    def post(self, request):
+        serializer = OrderSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        data = serializer.data
+
+        cart = Cart.objects.filter(user=request.user).select_related('product')
+        data['user'] = request.user
+        
+        total_price = 0
+
+        for item in cart:
+            item_quantity = item.quantity
+            product_stock = item.product.quantity
+
+            if product_stock == 0:
+                item.delete()
+                total_price += item.product.price * item.quantity
+            elif item_quantity > product_stock:
+                return Response(f"{item.product.product_name} is out of stock limit, please decrease your product items in your cart", status=status.HTTP_400_BAD_REQUEST)
+            else:
+                total_price += item.product.price * item.quantity
+
+        if request.data:
+            shipping_address = data['shipping_address']
+            phone_number = data['phone_number']
+        else:
+            shipping_address = ''
+            phone_number = ''
+
+        if shipping_address and phone_number:
+            order = Order(user=request.user, shipping_address=shipping_address, phone_number=phone_number, total_price=total_price, status='W')
+
+            if order:
+                order.save()
+                context = {
+                    'system': "Django website team",
+                    'order_id': order.id,
+                    'username': order.user.username,
+                    'date': order.date,
+                    'orders': cart,
+                    'total': order.total_price,
+                    'host': HOST,
+                }
+                message = get_template('messages/order_success_message.html').render(context)
+                msg = EmailMessage(f'New order #{order.id} have been made, please check waiting order.',message, EMAIL_HOST_USER, [EMAIL_HOST_USER],)
+                msg.content_subtype = "html"  
+                msg.send()
+            
+                # Xử lý giảm số hàng của sản phẩm trong kho sau khi order
+                for item in cart:
+                    order_detail = Booking(order=order, quantity=item.quantity, product=Product.objects.get(id=item.product.pk))
+                    order_detail.save()
+                    item.product.quantity -= item.quantity
+                    item.product.save()
+                # Xử lý làm rỗng giỏ hàng
+                Cart.objects.filter(user=request.user).delete()
+                return Response(OrderSerializer(order).data, status=status.HTTP_201_CREATED)
+            else:
+                return Response('Order is invalid, try again!', status=status.HTTP_404_NOT_FOUND)
+        else:
+            return Response('Shipping address or phone number is invalid!', status=status.HTTP_404_NOT_FOUND)
 
 def product_get(request):
     products = Product.objects.all()
