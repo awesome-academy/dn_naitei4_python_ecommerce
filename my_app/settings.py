@@ -47,6 +47,8 @@ INSTALLED_APPS = [
     'crispy_forms',
     'mathfilters',
     'import_export',
+    'rest_framework',
+    'drf_yasg',
 ]
 
 MIDDLEWARE = [
@@ -170,3 +172,8 @@ ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS")
 HOST = os.environ.get("HOST")
 
 IMPORT_EXPORT_USE_TRANSACTIONS = True
+
+REST_FRAMEWORK = {
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'PAGE_SIZE': 2,
+}

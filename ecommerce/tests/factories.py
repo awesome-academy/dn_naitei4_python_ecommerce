@@ -1,8 +1,6 @@
-from _typeshed import Self
 from django.contrib.auth.models import User
 import factory
 from faker import Factory
-from ecommerce import models
 from ecommerce.models import Cart, Comment, Order, Category, Product, Profile, Review
 
 faker = Factory.create()
@@ -37,6 +35,7 @@ class ProductFactory(factory.django.DjangoModelFactory):
     product_name=faker.name()
     category=factory.SubFactory(CategoryFactory)
     description=faker.text()
+    publish_date=faker.date_object()
     price=faker.random_number()
     quantity=faker.random_number()
 
@@ -75,4 +74,3 @@ class CommentFactory(factory.django.DjangoModelFactory):
     created = faker.date_object()
     review = factory.SubFactory(ReviewFactory)
     user = factory.SubFactory(UserFactory)
-    parent_comment = factory.SubFactory(Self)

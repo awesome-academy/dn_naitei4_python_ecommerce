@@ -1,4 +1,5 @@
 import datetime
+from ecommerce.serializers import ProductSerializer
 import xlwt
 from ecommerce.resources import ProductResource
 from tablib import Dataset
@@ -20,7 +21,20 @@ from django.db import transaction
 from django.template.loader import render_to_string, get_template
 from django.core.paginator import Paginator
 from django.utils.translation import gettext_lazy as _
+from rest_framework import viewsets, pagination
+from django.shortcuts import render
 from .models import Booking, Cart, Category, Comment, FavoriteProduct, Order, Product, Review
+
+class CustomPagination(pagination.PageNumberPagination):
+    page_size = 2
+    page_size_query_param = 'page_size'
+    max_page_size = 50
+    page_query_param = 'p'
+
+class APIProductViewSet(viewsets.ModelViewSet):
+    queryset = Product.objects.all()
+    serializer_class = ProductSerializer
+    pagination_class = CustomPagination
 
 def product_get(request):
     products = Product.objects.all()
