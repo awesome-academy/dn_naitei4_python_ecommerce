@@ -13,7 +13,7 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
-from ecommerce.views import APIProductViewSet
+from ecommerce.views import APICheckoutView, APIProductViewSet, OrderList
 from django.contrib import admin
 from django.urls import path
 from django.urls import include
@@ -49,6 +49,8 @@ urlpatterns = [
     path('reset-password/complete/', PasswordResetCompleteView.as_view(), name='password_reset_complete',),
     path('api-auth/', include('rest_framework.urls')),
     path('redoc', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
+    path('checkout/', APICheckoutView.as_view(), name='checkout'),
+    path("order/", OrderList.as_view(), name="orders_list"),
 ]
 
 urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
