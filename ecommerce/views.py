@@ -1,5 +1,5 @@
 import datetime
-from ecommerce.serializers import CartSerializer, OrderSerializer, ProductSerializer
+from ecommerce.serializers import CartSerializer, OrderSerializer, ProductSerializer, UserLoginSerializer, UserSerializer
 import xlwt
 from ecommerce.resources import ProductResource
 from tablib import Dataset
@@ -21,10 +21,13 @@ from django.db import transaction
 from django.template.loader import render_to_string, get_template
 from django.core.paginator import Paginator
 from django.utils.translation import gettext_lazy as _
+from django.contrib.auth.hashers import make_password
+from django.contrib.auth import authenticate
 from rest_framework.views import APIView
 from rest_framework import viewsets, pagination, status
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from django.shortcuts import render
 from rest_framework import generics
 
@@ -116,6 +119,44 @@ class APICheckoutView(APIView):
                 return Response('Order is invalid, try again!', status=status.HTTP_404_NOT_FOUND)
         else:
             return Response('Shipping address or phone number is invalid!', status=status.HTTP_404_NOT_FOUND)
+
+class APIUserRegisterView(APIView):
+    def post(self, request):
+        serializer = UserSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.validated_data['password'] = make_password(serializer.validated_data['password'])
+            user = serializer.save()
+            
+            return JsonResponse({
+                'message': 'Register successful!'
+            }, status=status.HTTP_201_CREATED)
+
+        else:
+            return JsonResponse(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class APIUserLoginView(APIView):
+    def post(self, request):
+        serializer = UserLoginSerializer(data=request.data)
+        if serializer.is_valid():
+            user = authenticate(request, username=serializer.validated_data['email'], password=serializer.validated_data['password']
+            )
+            if user:
+                refresh = TokenObtainPairSerializer.get_token(user)
+                data = {
+                    'refresh_token': str(refresh),
+                    'access_token': str(refresh.access_token)
+                }
+                return Response(data, status=status.HTTP_200_OK)
+
+            return Response({
+                'error_message': 'Email or password is incorrect!',
+                'error_code': 400
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        return Response({
+            'error_messages': serializer.errors,
+            'error_code': 400
+        }, status=status.HTTP_400_BAD_REQUEST)
 
 def product_get(request):
     products = Product.objects.all()

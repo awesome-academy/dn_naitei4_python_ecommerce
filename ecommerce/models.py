@@ -1,4 +1,3 @@
-from django.contrib.auth.models import User
 from django.db import models
 from django.db.models.aggregates import Sum
 from django.urls import reverse
@@ -6,6 +5,20 @@ from django.utils.translation import gettext_lazy as _
 from django.dispatch import receiver
 from django.db.models.signals import post_save
 from django.utils.timezone import now
+from django.contrib.auth.models import AbstractUser
+
+class User(AbstractUser):
+    username = None
+    email = models.EmailField(_('email address'), unique=True)
+
+    USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = ['first_name', 'last_name']
+
+    def __str__(self):
+        return "{}".format(self.email)
+    
+    class Meta:
+        db_table = 'ecommerce_user'
 
 class Category(models.Model):
     name = models.CharField(max_length=200, help_text=_('Enter a product category (e.g. Fashion Toy)'))

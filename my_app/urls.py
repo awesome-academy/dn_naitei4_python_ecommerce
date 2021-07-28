@@ -13,7 +13,7 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
-from ecommerce.views import APICheckoutView, APIProductViewSet, OrderList
+from ecommerce.views import APICheckoutView, APIProductViewSet, APIUserLoginView, APIUserRegisterView, OrderList
 from django.contrib import admin
 from django.urls import path
 from django.urls import include
@@ -48,9 +48,11 @@ urlpatterns = [
     path('reset-password/confirm/<uidb64>[0-9A-Za-z]+)-<token>/',PasswordResetConfirmView.as_view(), name='password_reset_confirm'),
     path('reset-password/complete/', PasswordResetCompleteView.as_view(), name='password_reset_complete',),
     path('api-auth/', include('rest_framework.urls')),
-    path('redoc', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
-    path('checkout/', APICheckoutView.as_view(), name='checkout'),
-    path("order/", OrderList.as_view(), name="orders_list"),
+    path('api/redoc', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
+    path('api/checkout/', APICheckoutView.as_view(), name='checkout'),
+    path("api/order/", OrderList.as_view(), name="orders_list"),
+    path('api/register/', APIUserRegisterView.as_view(), name='register'),
+    path('api/login/', APIUserLoginView.as_view(), name='login'),
 ]
 
 urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
